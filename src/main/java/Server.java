@@ -86,4 +86,27 @@ public class Server implements Runnable {
     public void run() {
         SocketWrapper socketWrapper = new SocketWrapper(portNumber);
     }
+
+
+    public static void main(String [] args) {
+        try {
+            FileWriter fw = new FileWriter("/homes/doshid/script.sh");
+            PrintWriter pw = new PrintWriter(fw);
+
+            pw.println("#!/bin/bash");
+            pw.println("ls -al");
+
+            pw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Process proc = null;
+
+        try {
+            proc = Runtime.getRuntime().exec("sh /homes/doshid/script.sh");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
