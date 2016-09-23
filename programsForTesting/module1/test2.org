@@ -1,0 +1,28 @@
+press 1 if you are a customer. 
+press 2 if you are a employee
+press 3 to exit
+press 1 to select what fruit you would like to purchase
+press 2 to back to the main menu
+which fruit you like to purchase?
+Sorry, we don't have orange
+
+press 1 to select what fruit you would like to purchase
+press 2 to back to the main menu
+press 1 if you are a customer. 
+press 2 if you are a employee
+press 3 to exit
+press 1 to check fruit on shelf
+press 2 to check fruit on stock
+press 3 to add fruit on the shelf
+press 4 to add fruit on stock
+press 5 to return main menu
+{'grape': 30, 'apple': 10, 'banana': 20}
+press 1 to check fruit on shelf
+press 2 to check fruit on stock
+press 3 to add fruit on the shelf
+press 4 to add fruit on stock
+press 5 to return main menu
+press 1 if you are a customer. 
+press 2 if you are a employee
+press 3 to exit
+Good bye!

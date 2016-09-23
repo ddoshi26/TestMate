@@ -1,0 +1,53 @@
+#!/bin/bash
+#test1 - test true case
+make clean
+make || exit -1
+echo "sequence subsequence" > input
+./AllinAll < input > output
+if [ `cat output` == "Yes" ]; then # "==" is same as "=" in string comparison in bash scripting.  
+	echo "test1 passed"
+else
+	echo "test1 failed"
+fi
+#test2 - test false case
+echo "person compression" > input
+./AllinAll < input > output 
+if [ `cat output` == "No" ]; then
+	echo "test2 passed"
+else
+	echo "test2 failed"
+fi
+
+#test3 - test same string
+echo "person person" > input
+./AllinAll < input > output 
+if [ `cat output` == "Yes" ]; then
+	echo "test3 passed"
+else
+	echo "test3 failed"
+fi
+#test4 - test long second string
+echo "VERDI vivaVittorioEmanueleReDiItalia" > input
+./AllinAll < input > output 
+if [ `cat output` == "Yes" ]; then
+	echo "test4 passed"
+else
+	echo "test4 failed"
+fi
+#test5
+
+echo "caseDoesMatter CaseDoesMatter" > input
+./AllinAll < input > output 
+if [ `cat output` == "No" ]; then
+	echo "test5 passed"
+else
+	echo "test5 failed"
+fi
+#test6
+echo "ss as" > input
+./AllinAll < input > output 
+if [ `cat output` == "No" ]; then
+	echo "test6 passed"
+else
+	echo "test6 failed"
+fi

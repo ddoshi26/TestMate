@@ -1,0 +1,21 @@
+#!/bin/bash
+#test3: test the amount of fruit on shelf does not satisfy, so autumatially refill from stock.
+echo "1" > input  # select customer path
+echo "1" >> input  # select phurchase
+echo "apple" >> input # type food to purchase
+echo "20" >> input #type amount to purchase
+echo "2" >> input #select back to main menu
+echo "2" >> input # select employee path
+echo "1" >> input # select to check fruit on shelf
+echo "2" >> input # select to check fruit on stock
+echo "5" >> input # get back to main menu
+echo "3" >> input # exit the program
+python stock.py < input > output
+
+diff output test3.org
+if [ $? -ne 0 ]; then
+	echo "test3 failed"
+	exit -1
+fi
+echo "test3 passed"
+exit 0

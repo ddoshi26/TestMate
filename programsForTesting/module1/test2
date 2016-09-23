@@ -1,0 +1,19 @@
+#!/bin/bash
+#test2: test this kind of fruit not in shelf.
+echo "1" > input  # select customer path
+echo "1" >> input  # select phurchase
+echo "orange" >> input # type food to purchase
+echo "2" >> input #select back to main menu
+echo "2" >> input # select employee path
+echo "1" >> input # select to check fruit on shelf
+echo "5" >> input # get back to main menu
+echo "3" >> input # exit the program
+python stock.py < input > output
+
+diff output test2.org
+if [[ $? -ne 0 ]]; then
+	echo "test2 failed"
+	exit -1
+fi
+echo "test2 passed"
+exit 0

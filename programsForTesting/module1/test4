@@ -1,0 +1,31 @@
+#!/bin/bash
+#test4: test after multiple purchase, the amount of fruit on shelf  + on stock can  not satisfy the amount of customer requested.
+echo "1" > input  # select customer path
+echo "1" >> input  # select phurchase
+echo "banana" >> input # type food to purchase
+echo "20" >> input #type amount to purchase
+
+count=0
+while [ "$count" -lt 4 ]
+do 
+	echo "1" >> input #purchase twice
+	echo "banana" >> input 
+	echo "60" >>input
+	let count=count+1
+done	
+echo "2" >> input #select back to main menu
+echo "2" >> input # select employee path
+echo "1" >> input # select to check fruit on shelf
+echo "2" >> input # select to check fruit on stock
+echo "4" >> input # select to add fruit on stock
+echo "3" >> input # select to add fruit on shelf
+echo "5" >> input # get back to main menu
+echo "3" >> input # exit the program
+python stock.py < input > output
+diff output test4.org
+if [ $? -ne 0 ]; then
+	echo "test4 failed"
+	exit -1
+fi
+echo "test4 passed"
+exit 0
