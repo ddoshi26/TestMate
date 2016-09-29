@@ -6,9 +6,9 @@ import java.util.*;
  * Created by Dhairya on 9/20/2016.
  */
 public class Server implements Runnable {
-    int portNumber;
-    private SocketWrapper socketWrapper = null;
-    private ArrayList<String> fileLocationList;
+    static int portNumber;
+    private static SocketWrapper socketWrapper = null;
+    private static ArrayList<String> fileLocationList;
 
     public Server() {
         portNumber = 9125;
@@ -28,18 +28,18 @@ public class Server implements Runnable {
     public ArrayList<String> getInputFiles() {
         // TODO: Get file location from user
         Scanner in = new Scanner(System.in);
-        char continue_char = 'n';
+        String continue_str = "n";
 
         System.out.println("Please provide the full path of the file that you wish to execute\n");
-        while (fileLocationList.size() < 3 || continue_char == 'y') {
+        while (fileLocationList.size() < 3 || continue_str.equals("y")) {
             if (fileLocationList.size() < 3) {
                 String fileName = getFile(in, fileLocationList.size());
             }
             else {
                 System.out.println("Do you wish to enter another file? \n Enter (y) or (n): ");
 
-                continue_char = (char) in.nextByte();
-                if (continue_char == 'y') {
+                continue_str = in.nextLine();
+                if (continue_str.equals("y")) {
                     String fileName = getFile(in, fileLocationList.size());
                     if (StringUtils.isBlank(fileName) || fileName.equals("")) {
                         return fileLocationList;
@@ -52,6 +52,20 @@ public class Server implements Runnable {
             }
         }
         return null;
+    }
+
+    public static int addFile(String path) {
+        if (StringUtils.isNotBlank(path)) {
+            if (fileLocationList.contains(path))
+                return 1;
+            else {
+                fileLocationList.add(path);
+                return 0;
+            }
+        }
+        else {
+            return -1;
+        }
     }
 
     public String getFile(Scanner in, int fileNumber) {
@@ -68,8 +82,8 @@ public class Server implements Runnable {
             } else {
                 System.out.println("Do you wish to enter another file? \n Enter (y) or (n): ");
 
-                char continue_char = (char) in.nextByte();
-                if (continue_char == 'y') {
+                String continue_str = in.nextLine();
+                if (continue_str.equals("y")) {
                     file = getFile(in, fileNumber);
                 } else {
                     return "";
@@ -84,11 +98,13 @@ public class Server implements Runnable {
 
     @Override
     public void run() {
-        SocketWrapper socketWrapper = new SocketWrapper(portNumber);
+
     }
 
 
     public static void main(String [] args) {
+        new Thread(new SocketWrapper(portNumber)).start();
+
         try {
             FileWriter fw = new FileWriter("/homes/doshid/script.sh");
             PrintWriter pw = new PrintWriter(fw);
