@@ -10,8 +10,6 @@ public class CommunicationProtocol {
 
     private int state = WAITING;
 
-    String inputValue = "";
-
     public int getState() {
         return state;
     }
@@ -38,11 +36,7 @@ public class CommunicationProtocol {
             }
         }
         else if (state == COMMUNICATING) {
-            if (inMessage.equalsIgnoreCase("Here are the file names")) {
-                outMessage =  "I am ready. Send them over";
-                state = RECEIVING_FILES;
-            }
-            else if (inMessage.equalsIgnoreCase("Send me the info for the module:")) {
+            if (inMessage.equalsIgnoreCase("Module Id: ")) {
                 outMessage = "Ready to get ModuleId";
                 state = RECEIVING_MODULE_ID;
             }
@@ -51,8 +45,12 @@ public class CommunicationProtocol {
                 state = WAITING;
             }
         }
-        else if (state == RECEIVING_MODULE_ID || state == RECEIVING_FILES) {
-            inputValue = inMessage;
+        else if (state == RECEIVING_MODULE_ID) {
+            outMessage = "Received Module ID: " + inMessage;
+            state = RECEIVING_FILES;
+        }
+        else if (state == RECEIVING_FILES) {
+            outMessage = "Received File: " + inMessage;
             state = COMMUNICATING;
         }
         else {

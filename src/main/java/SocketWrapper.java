@@ -56,7 +56,16 @@ public class SocketWrapper implements Runnable{
                 inMessage += new String(contents, 0, bytesRead);
             }
 
+            if (commProtocol.getState() == 3) {
+                Server.
+                Server.addFile(inMessage);
+            }
+            else if (commProtocol.getState() == 4) {
+                // getTestModuleInfo(Double.parseDouble(inMessage));
+            }
+
             String outMessage = commProtocol.processInput(inMessage);
+
 
         } catch (IOException e) {
             e.printStackTrace();

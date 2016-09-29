@@ -8,11 +8,12 @@ import java.util.*;
 public class Server implements Runnable {
     static int portNumber;
     private static SocketWrapper socketWrapper = null;
-    private static ArrayList<String> fileLocationList;
+    //private static ArrayList<String> fileLocationList;
+    private static Map<Double, ArrayList<String>> ModuleIdFileList;
 
     public Server() {
         portNumber = 9125;
-        fileLocationList = new ArrayList<String>();
+        ModuleIdFileList = new HashMap<Double, ArrayList<String>>();
     }
 
     public Server(int portNumber) {
@@ -22,13 +23,24 @@ public class Server implements Runnable {
         else {
             this.portNumber = portNumber;
         }
-        fileLocationList = new ArrayList<String>();
+        ModuleIdFileList = new HashMap<Double, ArrayList<String>>();
     }
 
     public ArrayList<String> getInputFiles() {
         // TODO: Get file location from user
         Scanner in = new Scanner(System.in);
         String continue_str = "n";
+
+        System.out.println("Please provide the ModuleId:");
+        String moduleIdStr = in.nextLine();
+
+        double moduleId = Double.parseDouble(moduleIdStr);
+        ArrayList<String> fileLocationList;
+
+        if ((fileLocationList = ModuleIdFileList.get(moduleId)) == null) {
+            System.out.println("Invalid moduleId");
+            return null;
+        }
 
         System.out.println("Please provide the full path of the file that you wish to execute\n");
         while (fileLocationList.size() < 3 || continue_str.equals("y")) {
@@ -103,7 +115,7 @@ public class Server implements Runnable {
 
 
     public static void main(String [] args) {
-        new Thread(new SocketWrapper(portNumber)).start();
+        new Thread(socketWrapper = new SocketWrapper(portNumber)).start();
 
         try {
             FileWriter fw = new FileWriter("/homes/doshid/script.sh");
