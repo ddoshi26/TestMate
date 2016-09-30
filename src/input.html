@@ -1,118 +1,135 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-<title>Test-Mate Module Creation</title>
-<!-- This css link isn't working, can't figure out why -->
-<link rel="stylesheet" type="text/css" href="style.css">
-<style>
- 
- .button {
- 	height: 30px;
- 	width: 150px;
- }
- 
-</style>
-</head>
+    <head>
+        <title>Test-Mate Module Creation</title>
+        <!-- This css link isn't working, can't figure out why -->
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <!--<style> 
 
-<p style=font-size:40px>
-<b>Module Creation</b>
-<p>
+            .button {
+                height: 30px;
+                width: 150px;
+            }
 
-<form method="post" enctype="multipart/form-data" onsubmit="process()">
-	Module name:<br>
-	<input type="text" name="moduleName" id="name">
-	<p>
-	Upload your test programs here.<br>
-	<input type="file" name="files[]" id="files" size="80" multiple>
-	</p>
-	<p>
-	Upload your test scripts here.<br>
-	<input type="file" name="files[]" id="scripts" size="80" multiple>
-	</p>
-	<p>
-	(Optional) upload your config scripts here.<br>
-	<input type="file" name="files[]" id="configs" multiple>
-	</p>
-	<p>
-	<input type="checkbox" name="periodic" id="periodic" value="testPeriodically"> Periodically rerun tests<br>
-	</p>
-	<input type="submit" class="button" value="Submit">
-</form>
+        </style>-->
+    </head>
 
-<script>
-if (window.File && window.FileReader && window.FileList && window.Blob) {
-	// File APIs supported
-} else {
-	alert("This browser does not fully support the File APIs.");
-}
+    <p style=font-size:40px>
+        <b>Module Creation</b>
+    <p>
 
-function process(evt) {
-	var moduleName = document.getElementById("name").value;
-	if (moduleName == null) {
-		alert("Module name is null");
-	} else if (moduleName.length == 0) {
-		alert("Please type in a module name.");
-		return;
-	}
-	var testFiles = document.getElementById('files').files;
-	if (testFiles == null) {
-		alert("Test file array is null");
-	}
-	if (testFiles.length == 0) {
-		//alert("Test file array is empty");
-	}
-	for (i = 0; i < testFiles.length; i++) {
-		// Process test files
-		alert(testFiles[i].name);
-	}
-	
-	var scriptFiles = document.getElementById('scripts').files;
-	if (scriptFiles == null) {
-		alert("Script file array is null");
-	}
-	if (scriptFiles.length == 0) {
-		//alert("Script file array is empty");
-	}
-	for (i = 0; i < scriptFiles.length; i++) {
-		// Process script files
-	}
-	
-	if (testFiles.length == 0 && scriptFiles.length == 0) {
-		if (confirm("You have not chosen any test or script files.\nDo you wish to proceed?")) {
-			
-		} else {
-			return;
-		}
-	} else if (testFiles.length == 0) {
-		if (confirm("You have not chosen any test files.\nDo you wish to proceed?")) {
-			
-		} else {
-			
-		}
-	} else if (scriptFiles.length == 0) {
-		if (confirm("You have not chosen any script files.\nDo you wish to proceed?")) {
-			
-		} else {
-			
-		}
-	}
-	
-	var configs = document.getElementById('configs').files;
-	if (configs == null) {
-		alert("Config script file array is null");
-	}
-	for (i = 0; i < configs.length; i++) {
-		
-	}
-	
-	var auto = document.getElementById('periodic').checked;
-}
+    <form method="post" enctype="multipart/form-data" onsubmit="process()">
+        Module name:<br>
+        <input type="text" name="moduleName" id="name">
+        <p>
+            Upload your test programs here.<br>
+            <input type="file" name="files[]" id="files" multiple>
+        </p>
+        <p>
+            Upload your test scripts here.<br>
+            <input type="file" name="files[]" id="scripts" multiple>
+        </p>
+        <p>
+            (Optional) upload your config scripts here.<br>
+            <input type="file" name="files[]" id="configs" multiple>
+        </p>
+        <p>
+            <input type="checkbox" name="periodic" id="periodic" value="testPeriodically"> Periodically rerun tests<br>
+        </p>
+        <input type="submit" class="button" value="Submit">
+    </form>
 
-function error() {
-	alert("An error occurred, please try again.");
-}
-</script>
+    <script>
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+            // File APIs supported
+        } else {
+            alert("This browser does not fully support the File APIs.");
+        }
+        function process(evt) {
+            
+            // Get module name
+            var moduleName = document.getElementById("name").value;
+            if (moduleName == null) {
+                alert("Module name is null");
+            } else if (moduleName.length == 0) {
+                alert("Please type in a module name.");
+                return;
+            }
+            
+            // Get files from file uploaders
+            
+            // Test files
+            var testFiles = document.getElementById('files').files;
+            if (testFiles == null) {
+                alert("Test file array is null");
+            }
+            if (testFiles.length == 0) {
+                //alert("Test file array is empty");
+            }
+            for (i = 0; i < testFiles.length; i++) {
+                // Process test files
+                // alert(testFiles[i].name);
+            }
+
+
+            // Script files
+            var scriptFiles = document.getElementById('scripts').files;
+            if (scriptFiles == null) {
+                alert("Script file array is null");
+            }
+            if (scriptFiles.length == 0) {
+                //alert("Script file array is empty");
+            }
+            for (i = 0; i < scriptFiles.length; i++) {
+                // Process script files
+            }
+
+            if (testFiles.length == 0 && scriptFiles.length == 0) {
+                if (confirm("You have not chosen any test or script files.\nDo you wish to proceed?")) {
+
+                } else {
+                    return;
+                }
+            } else if (testFiles.length == 0) {
+                if (confirm("You have not chosen any test files.\nDo you wish to proceed?")) {
+
+                } else {
+
+                }
+            } else if (scriptFiles.length == 0) {
+                if (confirm("You have not chosen any script files.\nDo you wish to proceed?")) {
+
+                } else {
+
+                }
+            }
+
+
+            // Configuration files
+            var configs = document.getElementById('configs').files;
+            if (configs == null) {
+                alert("Config script file array is null");
+            }
+            for (i = 0; i < configs.length; i++) {
+
+            }
+
+            var auto = document.getElementById('periodic').checked;
+            goToMainPage();
+            return false;
+        }
+        
+        function error() {
+            alert("An error occurred, please try again.");
+        }
+        
+        function goToMainPage() {
+            location.href = "main.html";
+            alert("Temp fix");
+            return false;
+        }
+    </script>
 
 </body>
 </html>
