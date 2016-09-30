@@ -8,17 +8,21 @@ import com.amazonaws.services.dynamodbv2.datamodeling.S3Link;
 import java.util.HashMap;
 
 
-/* TestModuleObject */
-@DynamoDBTable(tableName="TestModules")
-public class TestModules {
+/* TestModule object */
+@DynamoDBTable(tableName = "TestModule")
+public class TestModule {
     private String name;
     private S3Link executableFile;
     private S3Link testFile;
     private S3Link scriptFile;
+    private String latestTestJobName;
+    private String latestTestJobTimestamp;
+
     public HashMap<String, String> filePathMap = new HashMap<>();
 
+
     // Partition key
-    @DynamoDBHashKey(attributeName="TestModuleName")
+    @DynamoDBHashKey(attributeName = "TestModuleName")
     public String getName() {
         return name;
     }
@@ -26,7 +30,7 @@ public class TestModules {
         this.name = name;
     }
 
-    @DynamoDBAttribute(attributeName="executableFile")
+    @DynamoDBAttribute(attributeName = "executableFile")
     public S3Link getExecutableFile() {
         return executableFile;
     }
@@ -35,7 +39,7 @@ public class TestModules {
         this.executableFile = executableFile;
     }
 
-    @DynamoDBAttribute(attributeName="testFile")
+    @DynamoDBAttribute(attributeName = "testFile")
     public S3Link getTestFile() {
         return testFile;
     }
@@ -44,12 +48,30 @@ public class TestModules {
         this.testFile = testFile;
     }
 
-    @DynamoDBAttribute(attributeName="scriptFile")
+    @DynamoDBAttribute(attributeName = "scriptFile")
     public S3Link getScriptFile() {
         return scriptFile;
     }
 
     public void setScriptFile(S3Link scriptFile) {
         this.scriptFile = scriptFile;
+    }
+
+    @DynamoDBAttribute(attributeName = "latestTestJobName")
+    public String getLatestTestJobName() {
+        return latestTestJobName;
+    }
+
+    public void setLatestTestJobName(String latestTestJobName) {
+        this.latestTestJobName = latestTestJobName;
+    }
+
+    @DynamoDBAttribute(attributeName = "latestTestJobTimestamp")
+    public String getLatestTestJobTimestamp() {
+        return latestTestJobTimestamp;
+    }
+
+    public void setLatestTestJobTimestamp(String latestTestJobTimestamp) {
+        this.latestTestJobTimestamp = latestTestJobTimestamp;
     }
 }

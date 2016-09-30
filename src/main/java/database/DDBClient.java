@@ -2,7 +2,6 @@ package database;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.datamodeling.*;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
@@ -11,20 +10,16 @@ import com.amazonaws.services.dynamodbv2.model.*;
 import com.amazonaws.services.s3.model.Region;
 
 import java.io.File;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
-/**
- * Do NOT call these methods directly, use the
- * methods in DDBManager to handle all cases
- */
 
 public class DDBClient {
 
+    final static String executableFile = "executableFile";
+    final static String testFile = "testFile";
+    final static String scriptFile = "scriptFile";
 
     AWSCredentialsProvider awsCredentialsProvider;
     AmazonDynamoDBClient client;
@@ -44,12 +39,12 @@ public class DDBClient {
 
 
     /*
-     * Create Dynamo tables : TestModules and TestJobs
+     * Create Dynamo tables : TestModule and TestJob
      * if tables do not exist.
      */
     public void createTables() {
 
-        String[] tableNames = {"TestModules", "TestJobs"};
+        String[] tableNames = {"TestModule", "TestJob"};
         String tableName;
 
         for (int i = 0; i < tableNames.length; i++) {
@@ -68,12 +63,12 @@ public class DDBClient {
 
             } catch (ResourceNotFoundException rnfe) {
                 switch (tableName) {
-                    case "TestModules":
-                        createTable("TestModules", 10L, 5L, "TestModuleName", "S");
+                    case "TestModule":
+                        createTable("TestModule", 10L, 5L, "TestModuleName", "S");
                         break;
-                    case "TestJobs":
-                        /* TO DO : create secondary index for TestJobs if needed */
-                        createTable("TestJobs", 10L, 5L, "TestJobName", "S");
+                    case "TestJob":
+                        /* TO DO : create secondary index for TestJob if needed */
+                        createTable("TestJob", 10L, 5L, "TestJobName", "S");
                         break;
                     default:
                         System.err.println("Attempted to create table -> " + tableName + "\n");
@@ -148,23 +143,29 @@ public class DDBClient {
      */
     public void createNewTestModule(String testModuleName, String executableFilePath, String testFilePath,
                                     String scriptFilePath) {
-        TestModules testModule = new TestModules();
+        TestModule testModule = new TestModule();
         testModule.setName(testModuleName);
 
         S3Link s3Link_executableFile = mapper.createS3Link(Region.US_Standard, "testmate", testModule.getName() +
-                "/executableFile");
+                "/" + executableFile);
         s3Link_executableFile.uploadFrom(new File(executableFilePath));
         testModule.setExecutableFile(s3Link_executableFile);
 
         S3Link s3Link_testFile = mapper.createS3Link(Region.US_Standard, "testmate", testModule.getName() +
-                "/testFile");
+                "/" + testFile);
         s3Link_testFile.uploadFrom(new File(testFilePath));
         testModule.setTestFile(s3Link_testFile);
 
         S3Link s3Link_scriptFile = mapper.createS3Link(Region.US_Standard, "testmate", testModule.getName() +
-                "/scriptFile");
+                "/" + scriptFile);
         s3Link_scriptFile.uploadFrom(new File(scriptFilePath));
         testModule.setScriptFile(s3Link_scriptFile);
+
+        testModule.setLatestTestJobName("NA");
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date currentDate = new Date();
+        testModule.setLatestTestJobTimestamp(dateFormat.format(currentDate));
 
         mapper.save(testModule);
     }
@@ -172,17 +173,17 @@ public class DDBClient {
 
     /**
      * The executablefile, testfile and scriptfile are downloaded to TestModuleFiles folder
-     * and can be accessed using the filePathMap in the returned TestModules object
+     * and can be accessed using the filePathMap in the returned TestModule object
      * @param testModuleName
      * @return
      */
-    public TestModules getTestModule(String testModuleName) {
+    public TestModule getTestModule(String testModuleName) {
 
-        TestModules getTestModule = mapper.load(TestModules.class, testModuleName);
+        TestModule getTestModule = mapper.load(TestModule.class, testModuleName);
 
         /* check if the item exists */
         if(getTestModule == null) {
-            System.err.println("item does not exist\n");
+            System.err.println("TestModule " + testModuleName + "does not exist\n");
             return null;
         }
 
@@ -193,38 +194,112 @@ public class DDBClient {
         String projectFilePath = new java.io.File("").getAbsolutePath() + "/src/main/java/database/TestModuleFiles/";
 
         S3Link s3Link_executableFile = getTestModule.getExecutableFile();
-        String executableFilePath = projectFilePath + testModuleName + "/executableFile";
-        getTestModule.filePathMap.put("executableFile", executableFilePath);
+        String executableFilePath = projectFilePath + testModuleName + "/" + executableFile;
+        getTestModule.filePathMap.put(executableFile, executableFilePath);
         s3Link_executableFile.downloadTo(new File(executableFilePath));
 
         S3Link s3Link_testFile = getTestModule.getTestFile();
-        String testFilePath = projectFilePath + testModuleName + "/testFile";
-        getTestModule.filePathMap.put("testFile", testFilePath);
+        String testFilePath = projectFilePath + testModuleName + "/" + testFile;
+        getTestModule.filePathMap.put(testFile, testFilePath);
         s3Link_testFile.downloadTo(new File(testFilePath));
 
         S3Link s3Link_scriptFile = getTestModule.getScriptFile();
-        String scriptFilePath = projectFilePath + testModuleName + "/testFile";
-        getTestModule.filePathMap.put("scriptFile", scriptFilePath);
+        String scriptFilePath = projectFilePath + testModuleName + "/" + scriptFile;
+        getTestModule.filePathMap.put(scriptFile, scriptFilePath);
         s3Link_scriptFile.downloadTo(new File(scriptFilePath));
 
         return getTestModule;
     }
 
 
+    /**
+     *
+     * @return List of TestModule
+     * NOTE : files cannot be accessed. You need to call getTestModule with the
+     * name of the TestModule whose files you want to access.
+     */
+    public List<TestModule> getAllTestModules() {
+
+        DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
+        List<TestModule> scanResult = mapper.scan(TestModule.class, scanExpression);
+
+        for(TestModule testModule: scanResult) {
+            System.err.println(testModule.getName());
+            System.err.println();
+        }
+
+        return scanResult;
+    }
+
+
+    /**
+     * Each testModule keeps track of its latest job by calling this
+     * @param testModuleName
+     * @param testJobName
+     * @param testTimestamp
+     */
+    public void updateTestModuleWithNewTestJob(String testModuleName, String testJobName, String testTimestamp) {
+        TestModule updateTestModule = mapper.load(TestModule.class, testModuleName);
+        if(updateTestModule == null) {
+            System.err.println("Couldn't update testModule : " + testModuleName);
+            return;
+        }
+
+        updateTestModule.setLatestTestJobName(testJobName);
+        updateTestModule.setLatestTestJobTimestamp(testTimestamp);
+
+        mapper.save(updateTestModule);
+    }
+
+
+    /**
+     * To create a new test job using the name of the test module and other params
+     * @param testModuleName
+     * @param noOfTotalTests
+     * @param testsPassed
+     * @param testsFailed
+     * @return the name of the testJob.
+     */
+    public String createNewTestJob(String testModuleName, int noOfTotalTests, int testsPassed, int testsFailed) {
+        TestJob testJob = new TestJob();
+
+        DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+        Date currentDate = new Date();
+        String testJobName = testModuleName + "_job_" + dateFormat.format(currentDate);
+        testJob.setName(testJobName);
+
+        testJob.setTotalTests(noOfTotalTests);
+        testJob.setTestsPassed(testsPassed);
+        testJob.setTestsFailed(testsFailed);
+
+        dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        testJob.setTimestamp(dateFormat.format(currentDate));
+
+        mapper.save(testJob);
+
+        return testJobName;
+    }
+
+
+    /**
+     * Retrieves the test job given its name
+     * @param testJobName
+     * @return
+     */
+    public TestJob getTestJob(String testJobName) {
+        TestJob testJob = mapper.load(TestJob.class, testJobName);
+        if(testJob == null) {
+            System.err.println("TestJob " + testJobName + " does not exist");
+            return null;
+        } else {
+         return testJob;
+        }
+    }
+
+
     // TO DO
-    public Map<String, AttributeValue> getAllTestModules() {
+    public List<TestJob> getAllTestJobsForATestModule(String testModuleName) {
         return null;
     }
-
-    // TO DO
-    public void createNewTestJob() {
-
-    }
-
-    // TO DO
-    public TestJobs getTestJob() {
-        return null;
-    }
-
 
 }
