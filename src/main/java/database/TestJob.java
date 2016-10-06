@@ -10,23 +10,33 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 /* TestJob object */
 @DynamoDBTable(tableName = "TestJob")
 public class TestJob {
-    private String name;
+    private String testModuleName;
+    private String testJobName;
     private String timestamp;
     private int totalTests;
     private int testsPassed;
     private int testsFailed;
 
-    /*
-     * TestJobName are of the form TestModuleName_TimeStamp
-     */
-    // Partition key
-    @DynamoDBHashKey(attributeName = "TestJobName")
-    public String getName() {
-        return name;
+
+
+    /* Hash Key : TestModuleName */
+    @DynamoDBHashKey(attributeName = "TestModuleName")
+    public String getTestModuleName() {
+        return testModuleName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTestModuleName(String testModuleName) {
+        this.testModuleName = testModuleName;
+    }
+
+    /* Range Key : TestJobName is of the form TestModuleName_TimeStamp */
+    @DynamoDBRangeKey(attributeName = "TestJobName")
+    public String getTestJobName() {
+        return testJobName;
+    }
+
+    public void setTestJobName(String testJobName) {
+        this.testJobName = testJobName;
     }
 
     @DynamoDBAttribute(attributeName = "Timestamp")

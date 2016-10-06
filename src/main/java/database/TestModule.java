@@ -30,7 +30,7 @@ public class TestModule {
         this.name = name;
     }
 
-    @DynamoDBAttribute(attributeName = "executableFile")
+    @DynamoDBAttribute(attributeName = "ExecutableFile")
     public S3Link getExecutableFile() {
         return executableFile;
     }
@@ -39,7 +39,7 @@ public class TestModule {
         this.executableFile = executableFile;
     }
 
-    @DynamoDBAttribute(attributeName = "testFile")
+    @DynamoDBAttribute(attributeName = "TestFile")
     public S3Link getTestFile() {
         return testFile;
     }
@@ -48,7 +48,7 @@ public class TestModule {
         this.testFile = testFile;
     }
 
-    @DynamoDBAttribute(attributeName = "scriptFile")
+    @DynamoDBAttribute(attributeName = "ScriptFile")
     public S3Link getScriptFile() {
         return scriptFile;
     }
@@ -57,7 +57,7 @@ public class TestModule {
         this.scriptFile = scriptFile;
     }
 
-    @DynamoDBAttribute(attributeName = "latestTestJobName")
+    @DynamoDBAttribute(attributeName = "LatestTestJobName")
     public String getLatestTestJobName() {
         return latestTestJobName;
     }
@@ -66,7 +66,7 @@ public class TestModule {
         this.latestTestJobName = latestTestJobName;
     }
 
-    @DynamoDBAttribute(attributeName = "latestTestJobTimestamp")
+    @DynamoDBAttribute(attributeName = "LatestTestJobTimestamp")
     public String getLatestTestJobTimestamp() {
         return latestTestJobTimestamp;
     }

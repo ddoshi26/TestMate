@@ -59,7 +59,7 @@ public class DDBClient {
                 // check if table has ACTIVE status
                 boolean tableStatus = TableStatus.ACTIVE.toString().equals(table.getTableStatus());
                 assert (tableStatus = true);
-                System.out.println(tableName + " exists and is active");
+                System.err.println(tableName + " exists and is active");
 
             } catch (ResourceNotFoundException rnfe) {
                 switch (tableName) {
@@ -68,7 +68,7 @@ public class DDBClient {
                         break;
                     case "TestJob":
                         /* TO DO : create secondary index for TestJob if needed */
-                        createTable("TestJob", 10L, 5L, "TestJobName", "S");
+                        createTable("TestJob", 10L, 5L, "TestModuleName", "S", "TestJobName", "S");
                         break;
                     default:
                         System.err.println("Attempted to create table -> " + tableName + "\n");
@@ -121,9 +121,9 @@ public class DDBClient {
 
             request.setAttributeDefinitions(attributeDefinitions);
 
-            System.out.println("Issuing CreateTable request for " + tableName);
+            System.err.println("Issuing CreateTable request for " + tableName);
             Table table = dynamoDB.createTable(request);
-            System.out.println("Waiting for " + tableName
+            System.err.println("Waiting for " + tableName
                     + " to be created...this may take a while...");
             table.waitForActive();
 
@@ -263,11 +263,15 @@ public class DDBClient {
     public String createNewTestJob(String testModuleName, int noOfTotalTests, int testsPassed, int testsFailed) {
         TestJob testJob = new TestJob();
 
+        testJob.setTestModuleName(testModuleName);
+
         DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
         Date currentDate = new Date();
         String testJobName = testModuleName + "_job_" + dateFormat.format(currentDate);
-        testJob.setName(testJobName);
+        testJob.setTestJobName(testJobName);
 
+
+        assert(noOfTotalTests == testsPassed + testsFailed);
         testJob.setTotalTests(noOfTotalTests);
         testJob.setTestsPassed(testsPassed);
         testJob.setTestsFailed(testsFailed);
@@ -287,19 +291,57 @@ public class DDBClient {
      * @return
      */
     public TestJob getTestJob(String testJobName) {
-        TestJob testJob = mapper.load(TestJob.class, testJobName);
-        if(testJob == null) {
-            System.err.println("TestJob " + testJobName + " does not exist");
+
+        /* Parse the testJobName to get the testModuleName*/
+        String[] splitTestJobName = testJobName.split("_");
+        String testModuleName = splitTestJobName[0];
+        System.err.println("TestModuleName for the TestJob : " + testModuleName);
+
+        /* Get the TestJob */
+        Map<String, AttributeValue> eav = new HashMap<String, AttributeValue>();
+        eav.put(":val1", new AttributeValue().withS(testModuleName));
+        eav.put(":val2", new AttributeValue().withS(testJobName));
+
+        DynamoDBQueryExpression<TestJob> queryExpression = new DynamoDBQueryExpression<TestJob>()
+                .withKeyConditionExpression("TestModuleName = :val1 and TestJobName = :val2")
+                .withExpressionAttributeValues(eav);
+
+        List<TestJob> requiredTestJobs = mapper.query(TestJob.class, queryExpression);
+
+        assert (requiredTestJobs.size() <= 1);
+
+        if(requiredTestJobs.size() == 0) {
+            System.err.println("Test Job not found");
             return null;
         } else {
-         return testJob;
+            System.err.println("Test Job found :" + requiredTestJobs.get(0).getTestJobName());
+            return requiredTestJobs.get(0);
         }
     }
 
 
-    // TO DO
+    /**
+     * Returns Test Jobs with the same Test Module
+     * @param testModuleName : name of the test module
+     * @return list of Test Jobs
+     */
     public List<TestJob> getAllTestJobsForATestModule(String testModuleName) {
-        return null;
+
+        Map<String, AttributeValue> eav = new HashMap<>();
+        eav.put(":val1", new AttributeValue().withS(testModuleName));
+
+        DynamoDBQueryExpression<TestJob> queryExpression = new DynamoDBQueryExpression<TestJob>()
+                .withKeyConditionExpression("TestModuleName = :val1")
+                .withExpressionAttributeValues(eav);
+
+        List<TestJob> jobsWithGivenTestModuleName = mapper.query(TestJob.class, queryExpression);
+
+        System.err.println("Listing jobs for TestModule : " + testModuleName);
+        for(TestJob testJob: jobsWithGivenTestModuleName) {
+            System.err.println("TestJob : " + testJob.getTestJobName());
+        }
+
+        return jobsWithGivenTestModuleName;
     }
 
 }
