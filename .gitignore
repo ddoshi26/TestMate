@@ -1,0 +1,5 @@
+*.name
+*.xml
+.idea/modules/Test-Mate.iml
+*.iml
+*.class
