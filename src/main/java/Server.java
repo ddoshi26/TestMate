@@ -10,10 +10,13 @@ public class Server implements Runnable {
     private static SocketWrapper socketWrapper = null;
     //private static ArrayList<String> fileLocationList;
     private static Map<Double, ArrayList<String>> ModuleIdFileList;
+    private static double currentModuleId;
+    private static ArrayList<Thread> threads;
 
     public Server() {
         portNumber = 9125;
         ModuleIdFileList = new HashMap<Double, ArrayList<String>>();
+        currentModuleId = -1;
     }
 
     public Server(int portNumber) {
@@ -24,6 +27,7 @@ public class Server implements Runnable {
             this.portNumber = portNumber;
         }
         ModuleIdFileList = new HashMap<Double, ArrayList<String>>();
+        currentModuleId = -1;
     }
 
     public ArrayList<String> getInputFiles() {
@@ -35,6 +39,7 @@ public class Server implements Runnable {
         String moduleIdStr = in.nextLine();
 
         double moduleId = Double.parseDouble(moduleIdStr);
+        currentModuleId = moduleId;
         ArrayList<String> fileLocationList;
 
         if ((fileLocationList = ModuleIdFileList.get(moduleId)) == null) {
@@ -66,7 +71,16 @@ public class Server implements Runnable {
         return null;
     }
 
-    public static int addFile(String path) {
+    public static int addFile(double moduleId, String path) {
+        ArrayList<String> fileLocationList;
+
+        Double d = new Double(moduleId);
+
+        if ((fileLocationList = ModuleIdFileList.get(d)) == null) {
+            System.out.println("Invalid moduleId");
+            return -1;
+        }
+
         if (StringUtils.isNotBlank(path)) {
             if (fileLocationList.contains(path))
                 return 1;
@@ -81,6 +95,15 @@ public class Server implements Runnable {
     }
 
     public String getFile(Scanner in, int fileNumber) {
+        ArrayList<String> fileLocationList;
+
+        Double d = new Double(currentModuleId);
+
+        if ((fileLocationList = ModuleIdFileList.get(d)) == null) {
+            System.out.println("Invalid moduleId");
+            return null;
+        }
+
         System.out.println("Enter file " + fileNumber + ": ");
         String file = in.nextLine();
 
@@ -110,12 +133,21 @@ public class Server implements Runnable {
 
     @Override
     public void run() {
-
+        Thread t1 = new Thread(socketWrapper = new SocketWrapper(portNumber));
+        threads.add(t1);
+        t1.start();
     }
 
 
-    public static void main(String [] args) {
-        new Thread(socketWrapper = new SocketWrapper(portNumber)).start();
+    public static void createBashScript(double moduleId) {
+        ArrayList<String> fileLocationList;
+
+        Double d = new Double(currentModuleId);
+
+        if ((fileLocationList = ModuleIdFileList.get(d)) == null) {
+            System.out.println("Invalid moduleId");
+            return;
+        }
 
         try {
             FileWriter fw = new FileWriter("/homes/doshid/script.sh");
