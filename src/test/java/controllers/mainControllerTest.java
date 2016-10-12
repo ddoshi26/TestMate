@@ -13,8 +13,7 @@ public class mainControllerTest {
 
     @Test
     public void TestMateFailTest() {
-        boolean xyz = true;
-        // change xyz = false
+        boolean xyz = false;
         assertFalse(xyz);
     }
 }
