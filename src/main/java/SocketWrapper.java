@@ -11,6 +11,7 @@ public class SocketWrapper implements Runnable{
     BufferedInputStream inputStream;
     int portNumber;
     int state;
+    double currentModuleId = -1;
 
     public SocketWrapper(int portNumber) {
         this.portNumber = portNumber;
@@ -56,12 +57,11 @@ public class SocketWrapper implements Runnable{
                 inMessage += new String(contents, 0, bytesRead);
             }
 
-            if (commProtocol.getState() == 3) {
-                Server.
-                Server.addFile(inMessage);
+            if (commProtocol.getState() == 4) {
+                currentModuleId = Double.parseDouble(inMessage);
             }
-            else if (commProtocol.getState() == 4) {
-                // getTestModuleInfo(Double.parseDouble(inMessage));
+            else if (commProtocol.getState() == 3) {
+                Server.addFile(currentModuleId, inMessage);
             }
 
             String outMessage = commProtocol.processInput(inMessage);
