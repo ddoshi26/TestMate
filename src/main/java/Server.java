@@ -1,6 +1,10 @@
 import org.apache.commons.lang3.StringUtils;
+
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 
 /**
  * Created by Dhairya on 9/20/2016.
@@ -134,8 +138,22 @@ public class Server implements Runnable {
     @Override
     public void run() {
         Thread t1 = new Thread(socketWrapper = new SocketWrapper(portNumber));
+        Thread t2 = new Thread(new HandleRequests());
+        Thread t3 = new Thread(new HandleRequests());
+        Thread t4 = new Thread(new HandleRequests());
+        Thread t5 = new Thread(new HandleRequests());
+
         threads.add(t1);
+        threads.add(t2);
+        threads.add(t3);
+        threads.add(t4);
+        threads.add(t5);
+
         t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+        t5.start();
     }
 
 
