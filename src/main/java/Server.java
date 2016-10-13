@@ -1,5 +1,3 @@
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -137,7 +135,7 @@ public class Server implements Runnable {
 
     @Override
     public void run() {
-        Thread t1 = new Thread(socketWrapper = new SocketWrapper(portNumber));
+        Thread t1 = new Thread(new HandleRequests());
         Thread t2 = new Thread(new HandleRequests());
         Thread t3 = new Thread(new HandleRequests());
         Thread t4 = new Thread(new HandleRequests());
