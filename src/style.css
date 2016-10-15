@@ -1,8 +1,65 @@
 /* style.css
  * This file provides css styles.
  */
- 
- .button {
- 	height: 100px;
- 	width: 200px;
- }
+
+h1 {
+    color: black;
+    font-size: 40px;
+    text-align: center;
+    text-decoration: underline;
+}
+
+body {
+    background-color: white;
+    color: black;
+}
+
+form {
+    margin-left: 30%;
+    margin-right: 30%;
+}
+
+p {
+    color: black;
+    font-size: 20px;
+    text-align: left;
+    margin-top: -10px;
+}
+
+input.submit {
+    background-color: green;
+    color: white;
+    height: 30px;
+    width: 150px;
+    border-radius: 5px;
+    font-family: "Arial";
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+input[type=text] {
+    
+}
+
+input.hide {
+    position: absolute;
+    left: -137px;
+    -moz-opacity: 0;
+    filter: alpha(opacity: 0);
+    opacity: 0;
+    z-index: 2;
+}
+
+input.visible {
+    background-color: green;
+    font-weight: bold;
+    color: white;
+    z-index: 1;
+    width: 80px;    // Size is pretty much inalterable
+    height: 20px;   // Size is pretty much inalterable
+    font-size: 10px;
+    border-radius: 5px;
+    border: 2px solid black;
+    font-family: "Arial";
+}
