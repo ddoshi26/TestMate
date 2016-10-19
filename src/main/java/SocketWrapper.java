@@ -69,9 +69,14 @@ public class SocketWrapper {
 
             if (commProtocol.getState() == 4) {
                 currentModuleId = Double.parseDouble(inMessage);
+                outstream.println("Received moduleId:" + inMessage);
+                outstream.flush();
+                return commProtocol.getState() + ":" + currentModuleId;
             }
             else if (commProtocol.getState() == 3) {
-                Server.addFile(currentModuleId, inMessage);
+                outstream.println("Received files for moduleID:" + currentModuleId + ";" + inMessage);
+                outstream.flush();
+                return commProtocol.getState() + ":" + currentModuleId + "," + inMessage;
             }
 
             String outMessage = commProtocol.processInput(inMessage);
@@ -90,6 +95,6 @@ public class SocketWrapper {
             System.out.println("Connection closed");
         }
 
-        return inMessage;
+        return "" + commProtocol.getState() + ":" + inMessage;
     }
 }
