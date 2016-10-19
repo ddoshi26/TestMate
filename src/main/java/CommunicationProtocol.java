@@ -17,6 +17,8 @@ public class CommunicationProtocol {
     public String processInput(String inMessage) {
         String outMessage = "";
 
+
+        // @ Misha and Chris Refer to this to see what kind of messages are expected
         if (state == WAITING) {
             outMessage = "Hey! This is the Server!";
             state = SENTINITIALMESSAGE;
