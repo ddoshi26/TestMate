@@ -11,7 +11,7 @@ public class SocketWrapper {
     BufferedInputStream inputStream;
     int state;
     int portNumber;
-    double currentModuleId = -1;
+    String currentModuleName = null;
 
     public SocketWrapper(int portNumber) {
         this.portNumber = portNumber;
@@ -68,15 +68,15 @@ public class SocketWrapper {
             }
 
             if (commProtocol.getState() == 4) {
-                currentModuleId = Double.parseDouble(inMessage);
-                outstream.println("Received moduleId:" + inMessage);
+                currentModuleName = inMessage;
+                outstream.println("Received moduleName:" + inMessage);
                 outstream.flush();
-                return commProtocol.getState() + ":" + currentModuleId;
+                return commProtocol.getState() + ":" + currentModuleName;
             }
             else if (commProtocol.getState() == 3) {
-                outstream.println("Received info for moduleID:" + currentModuleId + ";" + inMessage);
+                outstream.println("Received info for moduleName:" + currentModuleName + ";" + inMessage);
                 outstream.flush();
-                return commProtocol.getState() + ":" + currentModuleId + "," + inMessage;
+                return commProtocol.getState() + ":" + currentModuleName + "," + inMessage;
             }
 
             String outMessage = commProtocol.processInput(inMessage);

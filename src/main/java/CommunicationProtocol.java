@@ -6,7 +6,7 @@ public class CommunicationProtocol {
     private static final int SENTINITIALMESSAGE = 1;
     private static final int COMMUNICATING = 2;
     private static final int RECEIVING_MODULE = 3;
-    private static final int RECEIVING_MODULE_ID = 4;
+    private static final int RECEIVING_MODULE_NAME = 4;
 
     private int state = WAITING;
 
@@ -40,14 +40,14 @@ public class CommunicationProtocol {
         else if (state == COMMUNICATING) {
             if (inMessage.equalsIgnoreCase("Module Id: ")) {
                 outMessage = "Ready to get ModuleId";
-                state = RECEIVING_MODULE_ID;
+                state = RECEIVING_MODULE_NAME;
             }
             else {
                 outMessage = "Unknown input";
                 state = WAITING;
             }
         }
-        else if (state == RECEIVING_MODULE_ID) {
+        else if (state == RECEIVING_MODULE_NAME) {
             outMessage = "Received Module ID: " + inMessage;
             state = RECEIVING_MODULE;
         }

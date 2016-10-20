@@ -1,4 +1,5 @@
 import database.DDBClient;
+import database.TestModule;
 
 import java.util.ArrayList;
 
@@ -9,19 +10,22 @@ public class HandleRequests implements Runnable {
     SocketWrapper socketWrapper;
     String message;
     StaticPorts staticPorts = new StaticPorts();
-    int currentModuleId = -1;
+
+    String currentModuleName;
+    TestModule currentModule;
     ArrayList<ArrayList<String>> fileList;
-    String moduleName;
 
     DDBClient ddbClient;
+
 
     public HandleRequests() {
         socketWrapper = new SocketWrapper(staticPorts.getPairList().get(StaticPorts.pos));
         StaticPorts.pos++;
         ddbClient = new DDBClient();
+
         //fileList(0) = Executable File list; fileList(1) = Test Files; fileList(2) = Script files
         fileList = new ArrayList<ArrayList<String>>(3);
-        moduleName = null;
+        currentModuleName = null;
     }
 
     @Override
@@ -33,32 +37,31 @@ public class HandleRequests implements Runnable {
                 }
                 else {
                     if (message.charAt(0) == '4') {
-                        String moduleIdStr = message.substring(message.indexOf(':') + 1, message.length());
-                        int moduleId = Integer.parseInt(moduleIdStr);
+                        String moduleNameStr = message.substring(message.indexOf(':') + 1, message.length());
                         //TODO: Connect to DB and send info
 
-                        if (moduleId != currentModuleId) {
+                        if (moduleNameStr != currentModuleName) {
                             fileList = new ArrayList<ArrayList<String>>(3);
-                            currentModuleId = moduleId;
-                            moduleName = "";
+                            currentModuleName = moduleNameStr;
                         }
+
+                        currentModule = ddbClient.getTestModule(moduleNameStr);
                     }
                     else if (message.charAt(0) == '3') {
                         // Message to create a new module should be of the format:
-                        // {{ModuleId:"moduleId"},{ModuleName:"moduleName"},{Files:<File1,...(Executable file); Test File; Script file...>}}
+                        // {{ModuleName:"moduleName"},{Files:<File1,...(Executable file); Test File; Script file...>}}
 
-                        String moduleIdStr = message.substring(message.indexOf(':') + 1, message.indexOf('}'));
-                        int moduleId = Integer.parseInt(moduleIdStr);
+                        String moduleNameStr = message.substring(message.indexOf(':') + 2, message.indexOf('}') - 1);
+                        String moduleName = moduleNameStr;
 
-                        if (moduleId != currentModuleId) {
+                        if (moduleName != currentModuleName) {
                             fileList = new ArrayList<ArrayList<String>>(3);
-                            currentModuleId = moduleId;
-                            moduleName = "";
+                            currentModuleName = moduleName;
                         }
 
                         parseFileLocationString(message.substring(message.indexOf(',') + 1));
                         //TODO: Create a TestModule object and send it to DB.
-                        ddbClient.createNewTestModule(moduleName, fileList.get(0).get(0), fileList.get(1).get(0), fileList.get(2).get(0));
+                        ddbClient.createNewTestModule(currentModuleName, fileList.get(0).get(0), fileList.get(1).get(0), fileList.get(2).get(0));
                     }
                 }
             }
@@ -66,15 +69,13 @@ public class HandleRequests implements Runnable {
         }
     }
 
-    // ModuleName:"moduleName"},{Files:<File1, ...>}}
+    // {Files:<File1,...(Executable file); Test File; Script file...>}}
     public void parseFileLocationString(String str) {
         int i = 0;
         int len = str.length();
         String file = "";
 
-        moduleName = str.substring(str.indexOf('"') + 1, str.indexOf('}') - 1);
-
-        i = str.indexOf(':', str.indexOf(','));
+        i = str.indexOf(':', str.indexOf('{'));
 
         int fileListindex = 0;
 
@@ -84,7 +85,8 @@ public class HandleRequests implements Runnable {
 
             while ((c = str.charAt(i)) != ';' && i < len) {
                 while (c != ',' && i < len) {
-                    file += c;
+                    if (c != '{' && c != '}')
+                        file += c;
                     i++;
                 }
                 i++;
