@@ -5,7 +5,7 @@ public class CommunicationProtocol {
     private static final int WAITING = 0;
     private static final int SENTINITIALMESSAGE = 1;
     private static final int COMMUNICATING = 2;
-    private static final int RECEIVING_FILES = 3;
+    private static final int RECEIVING_MODULE = 3;
     private static final int RECEIVING_MODULE_ID = 4;
 
     private int state = WAITING;
@@ -49,10 +49,10 @@ public class CommunicationProtocol {
         }
         else if (state == RECEIVING_MODULE_ID) {
             outMessage = "Received Module ID: " + inMessage;
-            state = RECEIVING_FILES;
+            state = RECEIVING_MODULE;
         }
-        else if (state == RECEIVING_FILES) {
-            outMessage = "Received File: " + inMessage;
+        else if (state == RECEIVING_MODULE) {
+            outMessage = "Received Module: " + inMessage;
             state = COMMUNICATING;
         }
         else {

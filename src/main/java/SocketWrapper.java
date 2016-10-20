@@ -74,7 +74,7 @@ public class SocketWrapper {
                 return commProtocol.getState() + ":" + currentModuleId;
             }
             else if (commProtocol.getState() == 3) {
-                outstream.println("Received files for moduleID:" + currentModuleId + ";" + inMessage);
+                outstream.println("Received info for moduleID:" + currentModuleId + ";" + inMessage);
                 outstream.flush();
                 return commProtocol.getState() + ":" + currentModuleId + "," + inMessage;
             }
