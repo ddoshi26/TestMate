@@ -3,7 +3,6 @@
 
     <head>
         <title>Test-Mate Module Creation</title>
-        <!-- This css link isn't working, can't figure out why -->
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
 
@@ -11,7 +10,9 @@
         <b>Module Creation</b>
     </h1>
 
-    <form method="post" enctype="multipart/form-data" onsubmit="process()" class="form">
+	<body>
+    <form method="post" 
+           class="form" action="servlet1">
         <p>
             Name:<br>
             <input type="text" name="moduleName" id="name">
@@ -19,7 +20,7 @@
         <p>
             Program Files<br>
             <input type="button" class="visible" id="pb1" value="SELECT">
-            <input type="file" name="files[]" id="files" class="hide" multiple
+            <input type="file" name="program_files[]" id="files" class="hide" multiple
                    onmousedown="buttonPush('depressed', 'pb1')"
                    onmouseup="buttonPush('normal', 'pb1')">
             <input type="text" disabled="disabled" placeholder="choose files" id="filefield">
@@ -27,7 +28,7 @@
         <p>
             Test Scripts<br>
             <input type="button" class="visible" id="pb2" value="SELECT">
-            <input type="file" name="files[]" id="scripts" class="hide" multiple
+            <input type="file" name="test_files[]" id="scripts" class="hide" multiple
                    onmousedown="buttonPush('depressed', 'pb2')"
                    onmouseup="buttonPush('normal', 'pb2')">
             <input type="text" disabled="disabled" placeholder="choose files" id="scriptfield">
@@ -35,19 +36,18 @@
         <p>
             Config Scripts (Optional)<br>
             <input type="button" class="visible" id="pb3" value="SELECT">
-            <input type="file" name="files[]" id="configs" class="hide" multiple
+            <input type="file" name="config_scripts[]" id="configs" class="hide" multiple
                    onmousedown="buttonPush('depressed', 'pb3')"
                    onmouseup="buttonPush('normal', 'pb3')">
             <input type="text" disabled="disabled" placeholder="choose files" id="configfield">
-        </p>
-        <p>
-            <input type="checkbox" name="periodic" id="periodic" value="testPeriodically"> Periodically rerun tests<br>
         </p>
         <br>
         <p>
             <input type="submit" class="submit" value="SUBMIT">
         </p>
     </form>
+
+	</body>
 
     <script>
 
@@ -67,6 +67,7 @@
         } else {
             alert("This browser does not fully support the File APIs.");
         }
+        
         function process(evt) {
 
             // Get module name
@@ -138,34 +139,7 @@
 
             var auto = document.getElementById('periodic').checked;
 
-            /*
-             alert("Trying to open socket");
-             
-             var socket = new WebSocket('localhost:5000');
-             socket.onopen = function() {
-             socket.send('input.html');
-             };
-             
-             alert("Trying to close socket");
-             */
-
             goToMainPage();
-            /*
-             goToMainPage();
-             
-             var Socket = Java.type("java.net.Socket");
-             var port = 9001;
-             var sock = new Socket("localhost", port);
-             var PrintWriter = Java.type("java.io.PrintWriter");
-             var pw = new PrintWriter(sock.getOutputStream(), true);
-             var BufferedReader = Java.type("java.io.BufferedReader");
-             var br = new BufferedReader(sock.getInputStream());
-             pw.print("Hello, server!");
-             var response = br.readLine();
-             alert("Response: " + response);
-             // Confirm identity
-             // Send in test module data
-             */
 
             return false;
         }
@@ -188,6 +162,5 @@
             }
         }
     </script>
-
-</body>
+    
 </html>

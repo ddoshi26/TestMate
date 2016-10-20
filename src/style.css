@@ -44,7 +44,9 @@ input[type=text] {
 
 input.hide {
     position: absolute;
-    left: -137px;
+    margin-left: 30%;
+    left: 0px;
+    width: 80px;
     -moz-opacity: 0;
     filter: alpha(opacity: 0);
     opacity: 0;
