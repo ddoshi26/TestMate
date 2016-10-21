@@ -13,8 +13,5 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
-	<classpathentry kind="lib" path="/home/chris/Software/commons-net-3.5/commons-net-3.5.jar"/>
-	<classpathentry kind="lib" path="/home/chris/Software/commons-net-3.5/commons-net-3.5-sources.jar"/>
-	<classpathentry kind="lib" path="/home/chris/Software/commons-net-3.5/commons-net-examples-3.5.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
