@@ -11,7 +11,7 @@ public class SocketWrapper {
     BufferedInputStream inputStream;
     int state;
     int portNumber;
-    double currentModuleId = -1;
+    String currentModuleName = null;
 
     public SocketWrapper(int portNumber) {
         this.portNumber = portNumber;
@@ -22,6 +22,7 @@ public class SocketWrapper {
     public boolean createServer() {
         try {
             serverSocket = new ServerSocket(portNumber);
+            serverSocket.setReuseAddress(true);
         } catch (IOException e){
             e.printStackTrace();
             return false;
@@ -33,6 +34,7 @@ public class SocketWrapper {
     public boolean getConnection() {
         try {
             clientSocket = serverSocket.accept();
+            System.out.println("Got connection");
             if (serverSocket != null && clientSocket != null) {
                 this.outstream = new PrintWriter(clientSocket.getOutputStream(), true);
                 this.inputStream = new BufferedInputStream(clientSocket.getInputStream());
@@ -46,7 +48,9 @@ public class SocketWrapper {
     }
 
     public String getMessage() {
-        this.createServer();
+        if (serverSocket == null)
+            this.createServer();
+
         String inMessage = "";
 
         CommunicationProtocol commProtocol = new CommunicationProtocol();
@@ -59,22 +63,38 @@ public class SocketWrapper {
             while((read = inputStream.read(contents)) != -1) {
                 inMessage += new String(contents, bytesRead, read);
                 bytesRead += read;
+                if (inMessage.contains("\r\n"))
+                    break;
             }
 
             if (commProtocol.getState() == 4) {
-                currentModuleId = Double.parseDouble(inMessage);
+                currentModuleName = inMessage;
+                outstream.println("Received moduleName:" + inMessage);
+                outstream.flush();
+                return commProtocol.getState() + ":" + currentModuleName;
             }
             else if (commProtocol.getState() == 3) {
-                Server.addFile(currentModuleId, inMessage);
+                outstream.println("Received info for moduleName:" + currentModuleName + ";" + inMessage);
+                outstream.flush();
+                return commProtocol.getState() + ":" + currentModuleName + "," + inMessage;
             }
 
             String outMessage = commProtocol.processInput(inMessage);
-
-
+            outstream.println(outMessage);
+            outstream.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            try {
+                outstream.flush();
+                serverSocket.close();
+                outstream.close();
+                inputStream.close();
+                clientSocket.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            System.out.println("Connection closed");
         }
 
-        return inMessage;
+        return "" + commProtocol.getState() + ":" + inMessage;
     }
 }

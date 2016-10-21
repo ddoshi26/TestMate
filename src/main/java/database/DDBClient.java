@@ -26,7 +26,7 @@ public class DDBClient {
     DynamoDB dynamoDB;
     DynamoDBMapper mapper;
 
-    DDBClient() {
+    public DDBClient() {
         /* initializing aws-related service providers */
         awsCredentialsProvider = new ProfileCredentialsProvider();
         client = new AmazonDynamoDBClient(awsCredentialsProvider);
