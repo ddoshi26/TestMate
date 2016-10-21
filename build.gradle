@@ -15,6 +15,10 @@ dependencies {
 	compile 'org.slf4j:slf4j-api:1.7.21'
     compile group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.11.38'
 
+	compile group: 'org.jsoup', name: 'jsoup', version: '1.9.2'
+
+
+
 	testCompile 'junit:junit:4.12'
 }
 
