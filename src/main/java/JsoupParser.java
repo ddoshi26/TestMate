@@ -1,15 +1,22 @@
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import javax.servlet.http.Part;
 
 import javax.swing.SwingUtilities;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+
 public class JsoupParser {
 	String filePath;  //the name of html to open and modify
 	Document doc; // // get the Document for the fileName, which is easy to access in any methods in this class.
+    static String moduleName;
+    static List<Part> programFiles;
+    static List<Part> testFiles;
+   	static List<Part> configureFiles;
+
 
 	public JsoupParser(String filePath) throws IOException {
 		 this.filePath = filePath;
@@ -43,7 +50,39 @@ public class JsoupParser {
 			    }
 			});
 	}
+	public static void setModuleName(String name) {
+		moduleName = name;
 
+
+	}
+	public static void setProgramFiles(List<Part> fileParts) {
+		programFiles = fileParts;
+
+	}
+	public static void setTestFiles(List<Part> fileParts) {
+		testFiles = fileParts;
+
+	}
+	public static void setConfigFiles(List<Part> fileParts) {
+		configureFiles = fileParts;
+
+	}
+	public static void sendData() {  // port:8001
+		try {
+			Socket clientSocket = new Socket("http://localhost", 8001);
+            ObjectOutputStream outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
+            outToServer.writeObject(moduleName);
+            outToServer.writeObject(programFiles);
+            outToServer.writeObject(testFiles);
+            outToServer.writeObject(configureFiles);
+            clientSocket.close();
+
+        } catch (Exception e) {
+        	 System.err.println("Client Error: " + e.getMessage());
+        }
+
+	}
+    
 	public static void main(String[] args) throws IOException {
 
 	     JsoupParser jp = new JsoupParser("C:\\Users\\User\\eclipse\\JsoupParser\\src\\FrontEnd.html");
