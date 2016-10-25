@@ -67,6 +67,12 @@ public class SocketWrapper {
                     break;
             }
 
+            if (inMessage.contains("Run module:")) {
+                String outMessage = "Got Run message: " + inMessage;
+                outstream.println(outMessage);
+                return "RUN" + inMessage;
+            }
+
             if (commProtocol.getState() == 4) {
                 currentModuleName = inMessage;
                 outstream.println("Received moduleName:" + inMessage);
@@ -96,5 +102,10 @@ public class SocketWrapper {
         }
 
         return "" + commProtocol.getState() + ":" + inMessage;
+    }
+
+    public void sendMessage(String outMessage) {
+        outstream.println(outMessage);
+        outstream.flush();
     }
 }

@@ -1,13 +1,13 @@
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import javax.servlet.http.Part;
-
-import javax.swing.SwingUtilities;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+
+import javax.servlet.http.Part;
+import javax.swing.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
 
 public class JsoupParser {
 	String filePath;  //the name of html to open and modify
@@ -17,6 +17,8 @@ public class JsoupParser {
     static List<Part> testFiles;
    	static List<Part> configureFiles;
 
+    public JsoupParser() {
+    }
 
 	public JsoupParser(String filePath) throws IOException {
 		 this.filePath = filePath;
@@ -52,30 +54,25 @@ public class JsoupParser {
 	}
 	public static void setModuleName(String name) {
 		moduleName = name;
-
-
 	}
+
 	public static void setProgramFiles(List<Part> fileParts) {
 		programFiles = fileParts;
-
 	}
+
 	public static void setTestFiles(List<Part> fileParts) {
 		testFiles = fileParts;
-
 	}
+
 	public static void setConfigFiles(List<Part> fileParts) {
 		configureFiles = fileParts;
 
 	}
 	public static void sendData() {  // port:8001
 		try {
-			Socket clientSocket = new Socket("http://localhost", 8001);
-            ObjectOutputStream outToServer = new ObjectOutputStream(clientSocket.getOutputStream());
-            outToServer.writeObject(moduleName);
-            outToServer.writeObject(programFiles);
-            outToServer.writeObject(testFiles);
-            outToServer.writeObject(configureFiles);
-            clientSocket.close();
+			ClientSocket clientSocket = new ClientSocket(moduleName, "Input Form");
+			clientSocket.run();
+
 
         } catch (Exception e) {
         	 System.err.println("Client Error: " + e.getMessage());
@@ -85,11 +82,14 @@ public class JsoupParser {
     
 	public static void main(String[] args) throws IOException {
 
-	     JsoupParser jp = new JsoupParser("C:\\Users\\User\\eclipse\\JsoupParser\\src\\FrontEnd.html");
-	     jp.displayResult("test4 passed");
+        JsoupParser jp = new JsoupParser();
+        jp.setModuleName("abcd");
+        jp.sendData();
+        /*jp.displayResult("test4 passed");
 
 	     JsoupParser jp2 = new JsoupParser("C:\\Users\\User\\eclipse\\JsoupParser\\src\\test.html");
-	     jp2.displayResult("test5 passed");
+	     jp2.displayResult("test5 passed");*/
+
 
 	}
 

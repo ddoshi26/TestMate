@@ -3,6 +3,7 @@ import database.TestModule;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Created by Dhairya on 10/12/2016.
@@ -17,7 +18,7 @@ public class HandleRequests implements Runnable {
     ArrayList<ArrayList<String>> fileList;
 
     DDBClient ddbClient;
-
+    Date date;
 
     public HandleRequests() {
         socketWrapper = new SocketWrapper(staticPorts.getPairList().get(StaticPorts.pos));
@@ -27,16 +28,27 @@ public class HandleRequests implements Runnable {
         //fileList(0) = Executable File list; fileList(1) = Test Files; fileList(2) = Script files
         fileList = new ArrayList<ArrayList<String>>(3);
         currentModuleName = null;
+        date = new Date();
     }
 
     @Override
     public void run() {
         if (socketWrapper.createServer() && socketWrapper.getConnection()) {
             while ((message = socketWrapper.getMessage()) != null) {
-                if (message.equalsIgnoreCase("")) {
+                if (message.equalsIgnoreCase("") || message.equals("0:")) {
                     break;
                 }
                 else {
+                    if (message.substring(0, 3).equals("RUN")) {
+                        TestModule runModule = ddbClient.getTestModule(message.substring(message.indexOf(':')));
+
+                        if (runModule == null) {
+                            socketWrapper.sendMessage("Invalid module name");
+                            return;
+                        }
+
+                        createBashScript(runModule);
+                    }
                     if (message.charAt(0) == '4') {
                         String moduleNameStr = message.substring(message.indexOf(':') + 1, message.length());
                         //TODO: Connect to DB and send info
@@ -107,14 +119,19 @@ public class HandleRequests implements Runnable {
         }
     }
 
-    public void createBashScript(double moduleId) {
-        if (fileList == null || currentModule == null) {
-            System.out.println("Current module or file list is empty");
+    public void createBashScript(TestModule runModule) {
+        if (runModule == null) {
             return;
         }
+        String fileLocationComplete = runModule.getScriptFile().toString();
+        String fileLocation = fileLocationComplete.substring(0, fileLocationComplete.lastIndexOf('/') + 1);
 
+        String fileName = fileLocation + "script_" + date.getTime() + ".sh";
+
+        //TODO: Complete creating file using TestModule and first run execute file
+        
         try {
-            FileWriter fw = new FileWriter("/homes/doshid/script.sh");
+            FileWriter fw = new FileWriter(fileName);
             PrintWriter pw = new PrintWriter(fw);
 
             pw.println("#!/bin/bash");
@@ -128,7 +145,7 @@ public class HandleRequests implements Runnable {
         Process proc = null;
 
         try {
-            proc = Runtime.getRuntime().exec("sh /homes/doshid/script.sh");
+            proc = Runtime.getRuntime().exec("sh " + fileName);
             proc.waitFor();
 
             BufferedReader reader =
