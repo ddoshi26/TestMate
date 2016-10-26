@@ -68,7 +68,7 @@ public class JsoupParser {
 		configureFiles = fileParts;
 
 	}
-	public static void sendData() {  // port:8001
+	public static void sendDataToServer() {  // port:8001
 		try {
 			ClientSocket clientSocket = new ClientSocket(moduleName, "Input Form");
 			clientSocket.run();
@@ -79,12 +79,17 @@ public class JsoupParser {
         }
 
 	}
+
+	public static void getDataFromServer(String dataJson) {
+
+	}
+
     
 	public static void main(String[] args) throws IOException {
 
         JsoupParser jp = new JsoupParser();
         jp.setModuleName("abcd");
-        jp.sendData();
+        jp.sendDataToServer();
         /*jp.displayResult("test4 passed");
 
 	     JsoupParser jp2 = new JsoupParser("C:\\Users\\User\\eclipse\\JsoupParser\\src\\test.html");

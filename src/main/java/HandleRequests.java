@@ -1,3 +1,5 @@
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import database.DDBClient;
 import database.TestModule;
 
@@ -19,6 +21,7 @@ public class HandleRequests implements Runnable {
 
     DDBClient ddbClient;
     Date date;
+    ObjectMapper mapper = new ObjectMapper();
 
     public HandleRequests() {
         socketWrapper = new SocketWrapper(staticPorts.getPairList().get(StaticPorts.pos));
@@ -39,8 +42,30 @@ public class HandleRequests implements Runnable {
                     break;
                 }
                 else {
-                    if (message.substring(0, 3).equals("RUN")) {
-                        TestModule runModule = ddbClient.getTestModule(message.substring(message.indexOf(':')));
+                    // SEND Module to UI
+                    if (message.charAt(0) == '4') {
+                        String moduleName = message.substring(message.indexOf(':') + 1);
+                        TestModule sendModule;
+
+
+                        if (moduleName == null || (sendModule = ddbClient.getTestModule(moduleName)) == null) {
+                            socketWrapper.sendMessage("ModuleName Invalid or Not Found:" + moduleName);
+                        }
+                        else {
+                            try {
+                                socketWrapper.sendMessage(mapper.writeValueAsString(sendModule));
+                            } catch (JsonProcessingException e) {
+                                socketWrapper.sendMessage("Failed to parse module. Deleting it from DB");
+
+                                // TODO: DELETE MODULE IMPLEMENTATION MISSING IN DB
+                                // TODO: ANOTHER Bug could be single delete in only 1 table rather than cross deleting both TestModule and Relevant TestJobs
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    // RUN Module
+                    else if (message.charAt(0) == '5') {
+                        TestModule runModule = ddbClient.getTestModule(message.substring(message.indexOf(':') + 1));
 
                         if (runModule == null) {
                             socketWrapper.sendMessage("Invalid module name");
@@ -48,33 +73,28 @@ public class HandleRequests implements Runnable {
                         }
 
                         createBashScript(runModule);
+                        // TODO: RUN SCRIPT BASED ON ORDER
                     }
-                    if (message.charAt(0) == '4') {
-                        String moduleNameStr = message.substring(message.indexOf(':') + 1, message.length());
-                        //TODO: Connect to DB and send info
 
-                        if (moduleNameStr != currentModuleName) {
-                            fileList = new ArrayList<ArrayList<String>>(3);
-                            currentModuleName = moduleNameStr;
-                        }
 
-                        currentModule = ddbClient.getTestModule(moduleNameStr);
-                    }
-                    else if (message.charAt(0) == '3') {
+                    // CREATE Module
+                    if (message.charAt(0) == '3') {
                         // Message to create a new module should be of the format:
                         // {{ModuleName:"moduleName"},{Files:<File1,...(Executable file); Test File; Script file...>}}
 
-                        String moduleNameStr = message.substring(message.indexOf(':') + 2, message.indexOf('}') - 1);
-                        String moduleName = moduleNameStr;
-
-                        if (moduleName != currentModuleName) {
-                            fileList = new ArrayList<ArrayList<String>>(3);
-                            currentModuleName = moduleName;
-                        }
+                        String moduleName = message.substring(message.indexOf(':') + 2, message.indexOf('}') - 1);
 
                         parseFileLocationString(message.substring(message.indexOf(',') + 1));
-                        //TODO: Create a TestModule object and send it to DB.
-                        ddbClient.createNewTestModule(currentModuleName, fileList.get(0).get(0), fileList.get(1).get(0), fileList.get(2).get(0));
+                        //TODO: Check for update option
+                        
+                        ddbClient.createNewTestModule(moduleName, fileList.get(0).get(0), fileList.get(1).get(0), fileList.get(2).get(0));
+
+                        if (ddbClient.getTestModule(moduleName) != null) {
+                            socketWrapper.sendMessage("Successfully created module:" + moduleName);
+                        }
+                        else {
+                            socketWrapper.sendMessage("Failed to create module:" + moduleName);
+                        }
                     }
                 }
                 message = "";
@@ -129,7 +149,18 @@ public class HandleRequests implements Runnable {
         String fileName = fileLocation + "script_" + date.getTime() + ".sh";
 
         //TODO: Complete creating file using TestModule and first run execute file
-        
+
+        Process scriptFileExecute = null;
+        String scriptFileLocation = runModule.getScriptFile().toString();
+        try {
+            scriptFileExecute = Runtime.getRuntime().exec(scriptFileLocation);
+            scriptFileExecute.waitFor();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         try {
             FileWriter fw = new FileWriter(fileName);
             PrintWriter pw = new PrintWriter(fw);
@@ -142,10 +173,14 @@ public class HandleRequests implements Runnable {
             e.printStackTrace();
         }
 
+        runCommand("sh " + fileName, fileName);
+    }
+
+    private void runCommand(String command, String fileName) {
         Process proc = null;
 
         try {
-            proc = Runtime.getRuntime().exec("sh " + fileName);
+            proc = Runtime.getRuntime().exec(command);
             proc.waitFor();
 
             BufferedReader reader =
@@ -161,7 +196,9 @@ public class HandleRequests implements Runnable {
 
         } catch (IOException e) {
             e.printStackTrace();
+            socketWrapper.sendMessage("Invalid file location:" + fileName);    //TODO: Potential bug location; don't send any error messages
         } catch (InterruptedException e) {
+            socketWrapper.sendMessage("Process interrupted while execution in progress:" + command);
             e.printStackTrace();
         }
     }
