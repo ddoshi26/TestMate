@@ -42,13 +42,32 @@ public class HandleRequests implements Runnable {
                     break;
                 }
                 else {
+                    // CREATE Module
+                    if (message.charAt(0) == '3') {
+                        // Message to create a new module should be of the format:
+                        // {{ModuleName:"moduleName"},{Files:<File1,...(Executable file); Test File; Script file...>}}
+
+                        String moduleName = message.substring(message.indexOf(':') + 2, message.indexOf('}') - 1);
+
+                        parseFileLocationString(message.substring(message.indexOf(',') + 1));
+                        //TODO: Check for update option
+
+                        ddbClient.createNewTestModule(moduleName, fileList.get(0).get(0), fileList.get(1).get(0), fileList.get(2).get(0));
+
+                        if (ddbClient.getTestModule(moduleName) != null) {
+                            socketWrapper.sendMessage("Successfully created module:" + moduleName);
+                        }
+                        else {
+                            socketWrapper.sendMessage("Failed to create module:" + moduleName);
+                        }
+                    }
                     // SEND Module to UI
                     if (message.charAt(0) == '4') {
                         String moduleName = message.substring(message.indexOf(':') + 1);
                         TestModule sendModule;
 
 
-                        if (moduleName == null || (sendModule = ddbClient.getTestModule(moduleName)) == null) {
+                        if (StringUtils.isBlank(moduleName) || (sendModule = ddbClient.getTestModule(moduleName)) == null) {
                             socketWrapper.sendMessage("ModuleName Invalid or Not Found:" + moduleName);
                         }
                         else {
@@ -74,27 +93,6 @@ public class HandleRequests implements Runnable {
 
                         createBashScript(runModule);
                         // TODO: RUN SCRIPT BASED ON ORDER
-                    }
-
-
-                    // CREATE Module
-                    if (message.charAt(0) == '3') {
-                        // Message to create a new module should be of the format:
-                        // {{ModuleName:"moduleName"},{Files:<File1,...(Executable file); Test File; Script file...>}}
-
-                        String moduleName = message.substring(message.indexOf(':') + 2, message.indexOf('}') - 1);
-
-                        parseFileLocationString(message.substring(message.indexOf(',') + 1));
-                        //TODO: Check for update option
-                        
-                        ddbClient.createNewTestModule(moduleName, fileList.get(0).get(0), fileList.get(1).get(0), fileList.get(2).get(0));
-
-                        if (ddbClient.getTestModule(moduleName) != null) {
-                            socketWrapper.sendMessage("Successfully created module:" + moduleName);
-                        }
-                        else {
-                            socketWrapper.sendMessage("Failed to create module:" + moduleName);
-                        }
                     }
                 }
                 message = "";
@@ -143,6 +141,14 @@ public class HandleRequests implements Runnable {
         if (runModule == null) {
             return;
         }
+
+        for (int i = 0; i < runModule.getScriptFile().length(); i++) {
+            String fileLocation = runModule.getScriptFile().toString();
+            String type = getFileType(fileLocation);
+            String fileName = getFileName(fileLocation);
+            runCommand(type + " " + fileLocation, );
+        }
+
         String fileLocationComplete = runModule.getScriptFile().toString();
         String fileLocation = fileLocationComplete.substring(0, fileLocationComplete.lastIndexOf('/') + 1);
 
@@ -201,6 +207,16 @@ public class HandleRequests implements Runnable {
             socketWrapper.sendMessage("Process interrupted while execution in progress:" + command);
             e.printStackTrace();
         }
+    }
+
+    public String getFileName(String fileLocation) {
+        return fileLocation.substring(fileLocation.lastIndexOf('/') + 1);
+    }
+
+    public String getFileType(String fileLocation) {
+        if (fileLocation.lastIndexOf('.') != -1)
+            return fileLocation.substring(fileLocation.lastIndexOf('.') + 1);
+        return null;
     }
 
     public static void main(String[] args) {
