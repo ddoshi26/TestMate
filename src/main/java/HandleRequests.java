@@ -93,7 +93,7 @@ public class HandleRequests implements Runnable {
                         }
 
                         createBashScript(runModule);
-                        // TODO: RUN SCRIPT BASED ON ORDER
+                        // TODO: RUN SCRIPT BASED ON ORDER <------ WIP
                     }
                 }
                 message = "";
@@ -162,10 +162,12 @@ public class HandleRequests implements Runnable {
 
         char lastChar = fileDirectory.charAt(fileDirectory.length() - 1);
 
+        //TODO: Check name of the file
         String execScriptfileName = fileDirectory + ((lastChar == '/') ? "" : "/") +
                                         "script_" + date.getTime() + ".sh";
 
         //TODO: Complete creating file using TestModule and first run execute file
+        //TODO: ^^ Check TODO below
 
         Process scriptFileExecute = null;
         String scriptFileLocation = runModule.getScriptFile().toString();
@@ -186,6 +188,8 @@ public class HandleRequests implements Runnable {
             pw.println("cd " + execScriptfileName);
 
             ArrayList<String> executableFileList = runModule.getExecutableFile();
+            ArrayList<String> testFileList = runModule.getTestFile();
+
             Map<String, ArrayList<String>> cmdList = new CommandListMap().commandList;
 
             for (int i = 0; i < executableFileList.length(); i++) {
@@ -200,6 +204,19 @@ public class HandleRequests implements Runnable {
                 }
             }
 
+            for (int i = 0; i < testFileList.length(); i++) {
+                String currentFileType = getFileType(testFileList.get(i));
+
+                if (cmdList.containsKey(currentFileType)) {
+                    cmdList.get(currentFileType).add(testFileList.get(i));
+                }
+                else {
+                    cmdList.put(currentFileType, new ArrayList<String>());
+                    cmdList.get(currentFileType).add(testFileList.get(i));
+                }
+            }
+
+            // TODO: Write the cmdList object into script file.
             pw.close();
         } catch (IOException e) {
             e.printStackTrace();
