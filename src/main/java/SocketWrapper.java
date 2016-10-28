@@ -67,17 +67,21 @@ public class SocketWrapper {
                     break;
             }
 
+            if (commProtocol.getState() == 4) {
+                currentModuleName = inMessage;
+                outstream.println("Received moduleName:" + inMessage);
+                outstream.flush();
+                return commProtocol.getState() + ":" + currentModuleName;
+            }
+            else if (commProtocol.getState() == 3) {
+                outstream.println("Received info for moduleName:" + currentModuleName + ";" + inMessage);
+                outstream.flush();
+                return commProtocol.getState() + ":" + currentModuleName + "," + inMessage;
+            }
+
             String outMessage = commProtocol.processInput(inMessage);
             outstream.println(outMessage);
             outstream.flush();
-
-            if (commProtocol.getState() == 3 || commProtocol.getState() == 4 || commProtocol.getState() == 5) {
-                return commProtocol.getState() + ":" + inMessage.substring(inMessage.indexOf(':') + 1);
-            }
-            else {
-                return "WAITING";
-            }
-
         } catch (IOException e) {
             try {
                 outstream.flush();
@@ -92,10 +96,5 @@ public class SocketWrapper {
         }
 
         return "" + commProtocol.getState() + ":" + inMessage;
-    }
-
-    public void sendMessage(String outMessage) {
-        outstream.println(outMessage);
-        outstream.flush();
     }
 }
