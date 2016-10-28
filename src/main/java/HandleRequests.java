@@ -6,6 +6,7 @@ import database.TestModule;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Created by Dhairya on 10/12/2016.
@@ -142,17 +143,27 @@ public class HandleRequests implements Runnable {
             return;
         }
 
-        for (int i = 0; i < runModule.getScriptFile().length(); i++) {
-            String fileLocation = runModule.getScriptFile().toString();
-            String type = getFileType(fileLocation);
-            String fileName = getFileName(fileLocation);
-            runCommand(type + " " + fileLocation, );
-        }
+        //for (int i = 0; i < runModule.getScriptFile().length(); i++) {
+            String fileLocationStr = runModule.getScriptFile().toString();
 
-        String fileLocationComplete = runModule.getScriptFile().toString();
-        String fileLocation = fileLocationComplete.substring(0, fileLocationComplete.lastIndexOf('/') + 1);
+            String type = getFileType(fileLocationStr);
+            String fileNameStr = getFileName(fileLocationStr);
 
-        String fileName = fileLocation + "script_" + date.getTime() + ".sh";
+            String fileDirectory = fileLocationStr.substring(0, fileLocationStr.lastIndexOf('/') + 1);
+            runCommand("cd " + fileDirectory, null);
+
+            if (type.equals("node install")) {
+                runCommand(type, null);
+            }
+            else {
+                runCommand(type + " " + fileLocationStr, fileNameStr);
+            }
+        //}
+
+        char lastChar = fileDirectory.charAt(fileDirectory.length() - 1);
+
+        String execScriptfileName = fileDirectory + ((lastChar == '/') ? "" : "/") +
+                                        "script_" + date.getTime() + ".sh";
 
         //TODO: Complete creating file using TestModule and first run execute file
 
@@ -168,11 +179,26 @@ public class HandleRequests implements Runnable {
         }
 
         try {
-            FileWriter fw = new FileWriter(fileName);
+            FileWriter fw = new FileWriter(execScriptfileName);
             PrintWriter pw = new PrintWriter(fw);
 
             pw.println("#!/bin/bash");
-            pw.println("ls -al");
+            pw.println("cd " + execScriptfileName);
+
+            ArrayList<String> executableFileList = runModule.getExecutableFile();
+            Map<String, ArrayList<String>> cmdList = new CommandListMap().commandList;
+
+            for (int i = 0; i < executableFileList.length(); i++) {
+                String currentFileType = getFileType(executableFileList.get(i));
+
+                if (cmdList.containsKey(currentFileType)) {
+                    cmdList.get(currentFileType).add(executableFileList.get(i));
+                }
+                else {
+                    cmdList.put(currentFileType, new ArrayList<String>());
+                    cmdList.get(currentFileType).add(executableFileList.get(i));
+                }
+            }
 
             pw.close();
         } catch (IOException e) {
@@ -189,20 +215,30 @@ public class HandleRequests implements Runnable {
             proc = Runtime.getRuntime().exec(command);
             proc.waitFor();
 
-            BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(proc.getInputStream()));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             StringBuilder builder = new StringBuilder();
+
             String line = null;
+
             while ( (line = reader.readLine()) != null) {
                 builder.append(line);
                 builder.append(System.getProperty("line.separator"));
             }
+
             String result = builder.toString();
+
             System.out.println(result);
 
         } catch (IOException e) {
             e.printStackTrace();
-            socketWrapper.sendMessage("Invalid file location:" + fileName);    //TODO: Potential bug location; don't send any error messages
+
+            if (StringUtils.isBlank(fileName)) {
+                System.out.println("Invalid file operation");
+            }
+            else {
+                socketWrapper.sendMessage("Invalid file location:" + fileName);    //TODO: Potential bug location; don't send any error messages
+            }
+
         } catch (InterruptedException e) {
             socketWrapper.sendMessage("Process interrupted while execution in progress:" + command);
             e.printStackTrace();
@@ -214,9 +250,34 @@ public class HandleRequests implements Runnable {
     }
 
     public String getFileType(String fileLocation) {
-        if (fileLocation.lastIndexOf('.') != -1)
-            return fileLocation.substring(fileLocation.lastIndexOf('.') + 1);
-        return null;
+        String type = "";
+
+        if (fileLocation.lastIndexOf('.') != -1) {
+            type = fileLocation.substring(fileLocation.lastIndexOf('.') + 1);
+
+            switch (type) {
+                case "json":
+                    runCommand("node install", null);
+                    break;
+
+                case "sh":
+                    //runCommand("sh " + fileLocationStr, fileNameStr);
+                case "java":
+                    //runCommand("java " + fileLocationStr, fileNameStr);
+                    return type;
+                case "c":
+                case "cpp":
+                default:
+                    //runCommand("./" + fileLocationStr, fileNameStr);
+                    return "./";
+            }
+        }
+        else if (StringUtils.isBlank(type)) {
+            //runCommand("./" + fileLocationStr, fileNameStr);
+            return "./";
+        }
+
+        return "./";
     }
 
     public static void main(String[] args) {
