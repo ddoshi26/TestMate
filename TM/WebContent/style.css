@@ -65,3 +65,27 @@ input.visible {
     border: 2px solid black;
     font-family: "Arial";
 }
+
+ul{
+	list-style-type: none;
+	margin: 0;
+	padding:0;
+	overflow: hidden;
+	background-color:#333;
+}
+li {
+	float: left;
+}
+li a{
+	display: block;
+	color: white;
+	text-align: centre;
+	padding: 14px 25px;
+	text-decoration: none;
+}
+li a:hover:not(.aactive){ 
+	background-color: #666;
+}
+.active{
+	background-color: #666;
+}
