@@ -4,9 +4,7 @@ import database.DDBClient;
 import database.TestModule;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Dhairya on 10/12/2016.
@@ -144,7 +142,8 @@ public class HandleRequests implements Runnable {
         }
 
         //for (int i = 0; i < runModule.getScriptFile().length(); i++) {
-            String fileLocationStr = runModule.getScriptFile().toString();
+            String fileLocationStr = runModule.getScriptFile().toJson();
+            //TODO: ^ Parse this json and extract the str
 
             String type = getFileType(fileLocationStr);
             String fileNameStr = getFileName(fileLocationStr);
@@ -162,7 +161,6 @@ public class HandleRequests implements Runnable {
 
         char lastChar = fileDirectory.charAt(fileDirectory.length() - 1);
 
-        //TODO: Check name of the file
         String execScriptfileName = fileDirectory + ((lastChar == '/') ? "" : "/") +
                                         "script_" + date.getTime() + ".sh";
 
@@ -170,7 +168,9 @@ public class HandleRequests implements Runnable {
         //TODO: ^^ Check TODO below
 
         Process scriptFileExecute = null;
-        String scriptFileLocation = runModule.getScriptFile().toString();
+        String scriptFileLocation = runModule.getScriptFile().toJson();
+        // TODO: ^ Parse the json and get the actual location
+
         try {
             scriptFileExecute = Runtime.getRuntime().exec(scriptFileLocation);
             scriptFileExecute.waitFor();
@@ -185,26 +185,33 @@ public class HandleRequests implements Runnable {
             PrintWriter pw = new PrintWriter(fw);
 
             pw.println("#!/bin/bash");
-            pw.println("cd " + execScriptfileName);
+            pw.println("cd " + fileDirectory);
 
-            ArrayList<String> executableFileList = runModule.getExecutableFile();
-            ArrayList<String> testFileList = runModule.getTestFile();
+            String jsonExec = runModule.getExecutableFile().toJson();
+            //TODO: ^ Parse json to get actual file
+
+
+            // TODO: Replace the below with the code in the comments
+            ArrayList<String> testFileList = new ArrayList<String>(); //runModule.getTestFile();
+            testFileList.add("homes/doshid/cs408/programsForTesting/module3/testall");
+            testFileList.add("homes/doshid/cs408/programsForTesting/module2/testall");
 
             Map<String, ArrayList<String>> cmdList = new CommandListMap().commandList;
 
-            for (int i = 0; i < executableFileList.length(); i++) {
-                String currentFileType = getFileType(executableFileList.get(i));
+            // TODO: Note that this has been commented out because in most cases the test file will run the exec files
+//            for (int i = 0; i < executableFileList.length(); i++) {
+//                String currentFileType = getFileType(executableFileList.get(i));
+//
+//                if (cmdList.containsKey(currentFileType)) {
+//                    cmdList.get(currentFileType).add(executableFileList.get(i));
+//                }
+//                else {
+//                    cmdList.put(currentFileType, new ArrayList<String>());
+//                    cmdList.get(currentFileType).add(executableFileList.get(i));
+//                }
+//            }
 
-                if (cmdList.containsKey(currentFileType)) {
-                    cmdList.get(currentFileType).add(executableFileList.get(i));
-                }
-                else {
-                    cmdList.put(currentFileType, new ArrayList<String>());
-                    cmdList.get(currentFileType).add(executableFileList.get(i));
-                }
-            }
-
-            for (int i = 0; i < testFileList.length(); i++) {
+            for (int i = 0; i < testFileList.size(); i++) {
                 String currentFileType = getFileType(testFileList.get(i));
 
                 if (cmdList.containsKey(currentFileType)) {
@@ -216,13 +223,29 @@ public class HandleRequests implements Runnable {
                 }
             }
 
+            Iterator<String> cmdListKey = cmdList.keySet().iterator();
+
+            while (cmdListKey.hasNext()) {
+                String key = cmdListKey.next();
+                ArrayList<String> fileList = cmdList.get(key);
+
+                pw.print(key + " ");
+                for (int i = 0; i < fileList.size(); i++) {
+                    pw.print(fileList.get(i));
+
+                    if (i != fileList.size() - 1)
+                        pw.print(" ");
+                }
+                pw.print("\n");
+            }
+
             // TODO: Write the cmdList object into script file.
             pw.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        runCommand("sh " + fileName, fileName);
+        runCommand("sh " + execScriptfileName, null);
     }
 
     private void runCommand(String command, String fileName) {
@@ -278,19 +301,16 @@ public class HandleRequests implements Runnable {
                     break;
 
                 case "sh":
-                    //runCommand("sh " + fileLocationStr, fileNameStr);
                 case "java":
-                    //runCommand("java " + fileLocationStr, fileNameStr);
                     return type;
+
                 case "c":
                 case "cpp":
                 default:
-                    //runCommand("./" + fileLocationStr, fileNameStr);
                     return "./";
             }
         }
         else if (StringUtils.isBlank(type)) {
-            //runCommand("./" + fileLocationStr, fileNameStr);
             return "./";
         }
 
