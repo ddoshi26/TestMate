@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>Test-Mate Module Creation</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+
+    <h1 style=font-size:40px>
+        <b>Module Creation</b>
+    </h1>
+
+	<body>
+    <form method="post"
+           class="form" action="servlet1">
+        <p>
+            Name:<br>
+            <input type="text" name="moduleName" id="name">
+        </p>
+        <p>
+            Program Files<br>
+            <input type="text" name="program_files" id="files">
+        </p>
+        <p>
+            Test Scripts<br>
+            <input type="text" name="test_files" id="scripts">
+        </p>
+        <p>
+            Config Scripts (Optional)<br>
+            <input type="text" name="config_scripts" id="configs">
+        </p>
+        <br>
+        <p>
+            <input type="submit" class="submit" value="SUBMIT">
+        </p>
+    </form>
+
+	</body>
+
+    <script>
+
+        // Show names of uploaded files
+        document.getElementById("files").onchange = function () {
+            document.getElementById("filefield").value = this.value;
+        };
+        document.getElementById("scripts").onchange = function () {
+            document.getElementById("scriptfield").value = this.value;
+        };
+        document.getElementById("configs").onchange = function () {
+            document.getElementById("configfield").value = this.value;
+        };
+
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+            // File APIs supported
+        } else {
+            alert("This browser does not fully support the File APIs.");
+        }
+        
+        function process(evt) {
+
+            // Get module name
+            var moduleName = document.getElementById("name").value;
+            if (moduleName == null) {
+                alert("Module name is null");
+            } else if (moduleName.length == 0) {
+                alert("Please type in a module name.");
+                return;
+            }
+
+            // Get files from file uploaders
+
+            // Test files
+            var testFiles = document.getElementById('files').files;
+            if (testFiles == null) {
+                alert("Test file array is null");
+            }
+            if (testFiles.length == 0) {
+                //alert("Test file array is empty");
+            }
+            for (i = 0; i < testFiles.length; i++) {
+                // Process test files
+                // alert(testFiles[i].name);
+            }
+
+
+            // Script files
+            var scriptFiles = document.getElementById('scripts').files;
+            if (scriptFiles == null) {
+                alert("Script file array is null");
+            }
+            if (scriptFiles.length == 0) {
+                //alert("Script file array is empty");
+            }
+            for (i = 0; i < scriptFiles.length; i++) {
+                // Process script files
+            }
+
+            if (testFiles.length == 0 && scriptFiles.length == 0) {
+                if (confirm("You have not chosen any test or script files.\nDo you wish to proceed?")) {
+
+                } else {
+                    return;
+                }
+            } else if (testFiles.length == 0) {
+                if (confirm("You have not chosen any test files.\nDo you wish to proceed?")) {
+
+                } else {
+
+                }
+            } else if (scriptFiles.length == 0) {
+                if (confirm("You have not chosen any script files.\nDo you wish to proceed?")) {
+
+                } else {
+
+                }
+            }
+
+
+            // Configuration files
+            var configs = document.getElementById('configs').files;
+            if (configs == null) {
+                alert("Config script file array is null");
+            }
+            for (i = 0; i < configs.length; i++) {
+
+            }
+
+            var auto = document.getElementById('periodic').checked;
+
+            goToMainPage();
+
+            return false;
+        }
+
+        function error() {
+            alert("An error occurred, please try again.");
+        }
+
+        function goToMainPage() {
+            location.href = "main.html";
+            alert("Temp fix");
+            return false;
+        }
+
+        function buttonPush(buttonStatus, id) {
+            if (buttonStatus == "depressed") {
+                document.getElementById(id).style.borderStyle = "inset";
+            } else {
+                document.getElementById(id).style.borderStyle = "outset";
+            }
+        }
+    </script>
+    
+</html>
