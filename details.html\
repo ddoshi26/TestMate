@@ -51,38 +51,7 @@
   <li><a href="Help.html">Help</a></li>
 
 </ul> 
-<div class="container">
-  <div class="row">
-   
-       <div class="table-responsive">
-    	<h2> Tests Running </h2>
-    	<p> This table shows the current tests being run by the server and all the related information</p>
-    	<table class="table">
-    		<thread>
-    			<tr>
-    				<th>#</th>
-    				<th>Test Module</th>
-    				<th>Last Run Job Time</th>
-    				<th>Total Tests Run</th>
-    				<th>Tests Passed</th>	
-            <th>Tests Failed</th>  
-    			</tr>	
-    		</thread>	
-    		<tbody>
-    			<tr>
-    				<td> 1</td>
-    				<td> Module#1</td>	
-    				<td> 9-20-16</td>
-    				<td> 30</td>
-    				<td> 30</td>
-            <td> 0</td>
-            <td><button class="detail" onClick="window.open('details.html');"><span class="icon">details</span></button></td>
-    			</tr>	
-    		</tbody>	
-    	</table>	
-    </div>	
-  </div>
-</div>
+
 
 </body>
 </html>
