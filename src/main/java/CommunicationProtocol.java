@@ -5,8 +5,9 @@ public class CommunicationProtocol {
     private static final int WAITING = 0;
     private static final int SENTINITIALMESSAGE = 1;
     private static final int COMMUNICATING = 2;
-    private static final int RECEIVING_FILES = 3;
-    private static final int RECEIVING_MODULE_ID = 4;
+    private static final int CREATE_MODULE = 3;
+    private static final int SEND_MODULE = 4;
+    private static final int RUN_MODULE = 5;
 
     private int state = WAITING;
 
@@ -14,9 +15,14 @@ public class CommunicationProtocol {
         return state;
     }
 
+    public void resetState() {
+        state = WAITING;
+    }
+
     public String processInput(String inMessage) {
         String outMessage = "";
 
+        // @ Misha and Chris Refer to this to see what kind of messages are expected
         if (state == WAITING) {
             outMessage = "Hey! This is the Server!";
             state = SENTINITIALMESSAGE;
@@ -36,22 +42,25 @@ public class CommunicationProtocol {
             }
         }
         else if (state == COMMUNICATING) {
-            if (inMessage.equalsIgnoreCase("Module Id: ")) {
-                outMessage = "Ready to get ModuleId";
-                state = RECEIVING_MODULE_ID;
+            // Format: "SEND:<ModuleName>"
+            if (inMessage.substring(0, 5).equals("SEND:")) {
+                outMessage = "Received Send message:" + inMessage;
+                state = SEND_MODULE;
+            }
+            // Format: "CREATE:{{ModuleName:"moduleName"},{Files:<File1,...(Executable file); Test File; Script file...>}}
+            else if (inMessage.substring(0, 7).equals("CREATE:")) {
+                outMessage = "Received message to Create:" + inMessage;
+                state = CREATE_MODULE;
+            }
+            // Format: "RUN:<ModuleName>"
+            else if (inMessage.substring(0, 4).equals("RUN:")) {
+                outMessage = "Received Run message:" + inMessage;
+                state = RUN_MODULE;
             }
             else {
                 outMessage = "Unknown input";
                 state = WAITING;
             }
-        }
-        else if (state == RECEIVING_MODULE_ID) {
-            outMessage = "Received Module ID: " + inMessage;
-            state = RECEIVING_FILES;
-        }
-        else if (state == RECEIVING_FILES) {
-            outMessage = "Received File: " + inMessage;
-            state = COMMUNICATING;
         }
         else {
             outMessage = "Waiting for input";
