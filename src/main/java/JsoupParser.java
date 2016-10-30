@@ -1,3 +1,4 @@
+/*
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -7,15 +8,11 @@ import javax.swing.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-<<<<<<< HEAD
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
+
 
 //Prerequirement for html page : we need assign tag id="result".
-=======
+
 import java.util.List;
->>>>>>> master
 
 public class JsoupParser {
 	String filePath;  //the name of html to open and modify
@@ -43,24 +40,7 @@ public class JsoupParser {
 		 
 		 // modify the text content of the Element
 		 res.text(result);
-<<<<<<< HEAD
-		 //System.out.println(res.text()); // for debug purpose
-		 
-		 // write back to the same file		 
-    	 FileWriter fw = new FileWriter(filePath);
-		 fw.write(doc.toString());
-	     fw.close();
-	
-	}
-	
-	/*// usage example: 
-	public static void main(String[] args) throws IOException {
-	     
-	     JsoupParser jp = new JsoupParser("C:\\Users\\User\\eclipse\\JsoupParser\\src\\FrontEnd.html");
-	     jp.displayResult("test4 passed");
-		 
-		 
-=======
+
 		 System.out.println(res.text()); // for debug purpose
 		 // write back to the same file
 
@@ -78,7 +58,16 @@ public class JsoupParser {
 
 			    }
 			});
+		 
+		 /* simpiler method for writting file back.
+		 // write back to the same file		 
+    	 FileWriter fw = new FileWriter(filePath);
+		 fw.write(doc.toString());
+	     fw.close();
 	}
+		  */
+	
+	/*
 	public static void setModuleName(String name) {
 		moduleName = name;
 	}
@@ -106,24 +95,56 @@ public class JsoupParser {
         }
 
 	}
+	*/
+	/*
 
-	public static void getDataFromServer(String dataJson) {
-
-	}
-
-    
-	public static void main(String[] args) throws IOException {
-
-        JsoupParser jp = new JsoupParser();
-        jp.setModuleName("abcd");
-        jp.sendDataToServer();
-        /*jp.displayResult("test4 passed");
-
-	     JsoupParser jp2 = new JsoupParser("C:\\Users\\User\\eclipse\\JsoupParser\\src\\test.html");
-	     jp2.displayResult("test5 passed");*/
-
-
->>>>>>> master
+	public static void getTestJobFromServer(ArrayList<TestJob> lastestTestJobs) {
+		
+		Element table = doc.select("table");
+		Elements rows = table.selct("tr").get(0);
+		int count = 0; 
+		for (TestJob testjob : latestTestJobs) {
+		       rows.append("<tr> <td>" + count + "</td>" + 
+		            "<td>" + testJob.testModuleName + "</td>" + 
+		    	    "<td>" + testJob.timestamp + "</td>" + 
+		            "<td>" + testJob.totalTests + "</td>" +
+		            "<td>" + testJob.testsPassed + "</td>" +
+		            "<td>" + testJob.testsFailed + "</td> </tr");
+		}
 	}
     */
+/*	
+	public static void getTestJobFromServer() {
+		
+		Element table = doc.select("table");
+		Elements rows = table.selct("tr").get(0);
+		int count = 0; 
+		for (count = 0; count < 5 ; count ++) {
+		       rows.append("<tr> <td>" + count + "</td>" + 
+		            "<td>" + "test2 + "</td>" + 
+		    	    "<td>" + "test2" + "</td>" + 
+		            "<td>" + "test2"  + "</td>" +
+		            "<td>" + "test2" + "</td>" +
+		            "<td>" + "test2"  + "</td> </tr");
+		}
+	} 
+	public static void main(String[] args) throws IOException {
+
+        //JsoupParser jp = new JsoupParser();
+        //jp.setModuleName("abcd");
+        //jp.sendDataToServer();
+        
+  
+	     JsoupParser jp2 = new JsoupParser("/Users/MyHome/Desktop/github/TestMate/src/test/main.html");
+	     //TestJob testjob1;
+	     jp2.getTestJobFromServer();
+	     
+	     //jp2.displayResult("test5 passed");
+
+
+
+	}
+	
+   
 }
+*/
