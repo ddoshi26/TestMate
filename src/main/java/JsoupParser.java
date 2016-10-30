@@ -1,4 +1,13 @@
-/*
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import jscoup.JsoupParser;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -67,7 +76,7 @@ public class JsoupParser {
 	}
 		  */
 	
-	/*
+	
 	public static void setModuleName(String name) {
 		moduleName = name;
 	}
@@ -95,38 +104,69 @@ public class JsoupParser {
         }
 
 	}
-	*/
-	/*
-
-	public static void getTestJobFromServer(ArrayList<TestJob> lastestTestJobs) {
 		
-		Element table = doc.select("table");
-		Elements rows = table.selct("tr").get(0);
-		int count = 0; 
-		for (TestJob testjob : latestTestJobs) {
-		       rows.append("<tr> <td>" + count + "</td>" + 
-		            "<td>" + testJob.testModuleName + "</td>" + 
-		    	    "<td>" + testJob.timestamp + "</td>" + 
-		            "<td>" + testJob.totalTests + "</td>" +
-		            "<td>" + testJob.testsPassed + "</td>" +
-		            "<td>" + testJob.testsFailed + "</td> </tr");
-		}
-	}
-    */
-/*	
-	public static void getTestJobFromServer() {
+    public void getTestJobFromServer(String moduleListStr) {
+    	ArrayList<String []> moduleList = new ArrayList<String []>();
+    	//String module[] = new String[5]; // future bug insertion position
+        String module[];
+        // 1) parse  the string input
+		// get rid of { in the beginning and } in the end;
+		String subStr = moduleListStr.substring(1, moduleListStr.length() - 1);
+		//split the substring into tokens
+		String modules[] = subStr.split(";");
+		// for each module, get rid of { and }.
+		System.out.println(modules.length);
+		for (int i = 0; i < modules.length; i++) {
+			String subMods = modules[i].substring(1, (modules[i].length() -1)); // possible inserting bug position :  modules[0]
+			System.out.println(subMods);
+		    // get the value of  tokens
+		 	module = new String[5];
+		    String tokens[] = subMods.split(",");
+		    for (int j = 0; j < tokens.length; j++) {
+		   
+		    	module[j] = tokens[j];
+		    	System.out.println("module[j] : " + module[j]);
+		    }
+		    moduleList.add(module);
+	    }
 		
-		Element table = doc.select("table");
-		Elements rows = table.selct("tr").get(0);
-		int count = 0; 
-		for (count = 0; count < 5 ; count ++) {
-		       rows.append("<tr> <td>" + count + "</td>" + 
-		            "<td>" + "test2 + "</td>" + 
-		    	    "<td>" + "test2" + "</td>" + 
-		            "<td>" + "test2"  + "</td>" +
-		            "<td>" + "test2" + "</td>" +
-		            "<td>" + "test2"  + "</td> </tr");
+	 	// 2) pass string variable into doc
+        Element table = doc.select("table").get(0);
+		// erase old table
+		Elements tbody = doc.select("tbody");
+	    Elements rows = tbody.select("tr");
+		//System.out.println("rows.size : " + tbody.size());
+	
+		for(int i = 1; i < rows.size(); i++) {
+		  
+		   rows.get(i).remove();
 		}
+		// fill table with new xdata
+		//rows = doc.select("tr");
+		System.out.println(moduleList.size());
+		for (int i = 0; i < moduleList.size() ; i ++) {
+			  // appending  each row on tbody is better than appending on table
+		      module = moduleList.get(i); 
+		      System.out.println(Arrays.toString(module));
+			  tbody.get(0).append("<tbody><tr> <td>" + i + "</td>" + 
+		            "<td>" + module[0] + "</td>"+ 
+		    	    "<td>" + module[1] + "</td>" + 
+		            "<td>" + module[2]  + "</td>" +
+		            "<td>" + module[3] + "</td>" + 
+		            "<td>" + module[4] + "</td>" +
+		            "<td><button class=\"detail\" onClick=\"window.open('details.html');\"><span class=\"icon\">details</span></button></td></tr></tbody>"
+		  );
+		}
+		 FileWriter fw;
+		try {
+			fw = new FileWriter(filePath);
+			 fw.write(doc.toString());
+		     fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	} 
 	public static void main(String[] args) throws IOException {
 
@@ -134,10 +174,9 @@ public class JsoupParser {
         //jp.setModuleName("abcd");
         //jp.sendDataToServer();
         
-  
-	     JsoupParser jp2 = new JsoupParser("/Users/MyHome/Desktop/github/TestMate/src/test/main.html");
-	     //TestJob testjob1;
-	     jp2.getTestJobFromServer();
+	     JsoupParser jp = new JsoupParser("/Users/MyHome/Desktop/github/TestMate/src/test/main.html");
+	     //jp.displayResult("test5 passed");
+	     jp.getTestJobFromServer("{{module1, 19091103, 7, 3, 10 }; {module2, 20161003, 6, 4, 10}}");
 	     
 	     //jp2.displayResult("test5 passed");
 
@@ -147,4 +186,3 @@ public class JsoupParser {
 	
    
 }
-*/
