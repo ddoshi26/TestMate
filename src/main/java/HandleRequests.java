@@ -5,7 +5,9 @@ import database.TestJob;
 import database.TestModule;
 
 import java.io.*;
+import java.sql.Time;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Dhairya on 10/12/2016.
@@ -23,10 +25,12 @@ public class HandleRequests implements Runnable {
     Date date;
     ObjectMapper mapper = new ObjectMapper();
 
+    String currentDir = "";
+
     public HandleRequests() {
         socketWrapper = new SocketWrapper(staticPorts.getPairList().get(StaticPorts.pos));
         StaticPorts.pos++;
-        ddbClient = new DDBClient();
+        //ddbClient = new DDBClient();
 
         //fileList(0) = Executable File list; fileList(1) = Test Files; fileList(2) = Script files
         fileList = new ArrayList<ArrayList<String>>(3);
@@ -172,20 +176,25 @@ public class HandleRequests implements Runnable {
         }
 
         //for (int i = 0; i < runModule.getScriptFile().length(); i++) {
-            String fileLocationStr = runModule.getScriptFile().toJson();
+            String fileLocationStr =  "/homes/doshid/cs252/lab2-src/script-consumer.sh"; ///runModule.getScriptFile().toJson();
             //TODO: ^ Parse this json and extract the str
 
             String type = getFileType(fileLocationStr);
             String fileNameStr = getFileName(fileLocationStr);
 
             String fileDirectory = fileLocationStr.substring(0, fileLocationStr.lastIndexOf('/') + 1);
-            runCommand("cd " + fileDirectory, null);
+            //TODO: NOTE: Do not change directory. Use absolute paths. runCommand("cd " + fileDirectory, null);
 
             if (type.equals("node install")) {
-                runCommand(type, null);
+                runCommand(type, null, 60);
             }
             else {
-                runCommand(type + " " + fileLocationStr, fileNameStr);
+                if (type.equals("")) {
+                    runCommand(fileLocationStr, fileNameStr, 60);
+                }
+                else {
+                    runCommand(type + " " + fileLocationStr, fileNameStr, 60);
+                }
             }
         //}
 
@@ -278,12 +287,14 @@ public class HandleRequests implements Runnable {
         runCommand("sh " + execScriptfileName, null);
     }
 
-    private void runCommand(String command, String fileName) {
+    private String runCommand(String command, String fileName, int timeout) {
         Process proc = null;
 
         try {
             proc = Runtime.getRuntime().exec(command);
-            proc.waitFor();
+            long start = System.currentTimeMillis();
+
+            proc.waitFor(timeout, TimeUnit.SECONDS);
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             StringBuilder builder = new StringBuilder();
@@ -297,7 +308,7 @@ public class HandleRequests implements Runnable {
 
             String result = builder.toString();
 
-            System.out.println(result);
+            return result;
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -313,6 +324,7 @@ public class HandleRequests implements Runnable {
             socketWrapper.sendMessage("Process interrupted while execution in progress:" + command);
             e.printStackTrace();
         }
+        return "";
     }
 
     public String getFileName(String fileLocation) {
@@ -332,23 +344,31 @@ public class HandleRequests implements Runnable {
 
                 case "sh":
                 case "java":
+                case "py":
                     return type;
 
                 case "c":
                 case "cpp":
                 default:
-                    return "./";
+                    return "";
             }
         }
         else if (StringUtils.isBlank(type)) {
-            return "./";
+            return "";
         }
 
-        return "./";
+        return "";
     }
 
     public static void main(String[] args) {
         HandleRequests hr = new HandleRequests();
+        hr.currentDir = hr.runCommand("pwd", null);
+        hr.currentDir = hr.currentDir.substring(0, hr.currentDir.length() - 1);
+        hr.createBashScript(new TestModule());
+
+        //String output = hr.runCommand("mv /u/data/u99/doshid/HuluCodingChallenge.py " + hr.currentDir, null);
+
+        System.out.println(hr.currentDir + "\n");
         hr.run();
     }
 }
