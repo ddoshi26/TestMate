@@ -68,11 +68,20 @@ public class SocketWrapper {
             }
 
             String outMessage = commProtocol.processInput(inMessage);
-            outstream.println(outMessage);
-            outstream.flush();
 
+            if (outMessage.equalsIgnoreCase("Bye")) {
+                return outMessage;
+            }
+            else if (commProtocol.getState() == 0 || commProtocol.getState() == 1) {
+                outstream.println(outMessage);
+                outstream.flush();
+                return "WAITING";
+            }
             if (commProtocol.getState() == 3 || commProtocol.getState() == 4 || commProtocol.getState() == 5) {
                 return commProtocol.getState() + ":" + inMessage.substring(inMessage.indexOf(':') + 1);
+            }
+            else if (commProtocol.getState() == 6) {
+                return commProtocol.getState() + ":" + inMessage;
             }
             else {
                 return "WAITING";
