@@ -9,32 +9,40 @@ import java.net.UnknownHostException;
  * Created by Dhairya on 10/18/2016.
  */
 public class ClientSocket {
-    String name = "";
-    String formType = "";
+    Socket clientSocket = null;
+    PrintWriter out;
+    BufferedReader in;
+    private String hostName = "localhost";
+    private int portNumber = 8001;
 
-    public ClientSocket(String name, String formType) {
-        this.name = name;
-        this.formType = formType;
-    }
 
-    public void run() {
-        String hostName = "localhost";
-        int portNumber = 8001;
-
+    public ClientSocket() {
         try {
-            Socket clientSocket = new Socket(hostName, portNumber);
+            clientSocket = new Socket(hostName, portNumber);
+
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public String run(String message, String formType) {
+        try {
+            clientSocket.setReuseAddress(true);
 
             String fromServer = "";
             String fromUser;
 
-            out.println("Hi Server! I am the " + formType);
+            out.println(message);
             if ((fromServer = in.readLine()) != null){
                 System.out.println("Server: " + fromServer);
-                //if (fromServer.equals("Bye."))
-                //break;
-                out.println();
+
+                return fromServer;
+            }
+            else {
+                return run(message, formType);
             }
         } catch(UnknownHostException e){
                 System.err.println("Don't know about host " + hostName);
@@ -44,5 +52,17 @@ public class ClientSocket {
                 System.exit(1);
         }
 
+        return "";
+    }
+
+    public void close() {
+        out.println("Bye");
+        try {
+            clientSocket.close();
+            out.close();
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
