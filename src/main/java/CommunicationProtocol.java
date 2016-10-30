@@ -8,6 +8,8 @@ public class CommunicationProtocol {
     private static final int CREATE_MODULE = 3;
     private static final int SEND_MODULE = 4;
     private static final int RUN_MODULE = 5;
+    private static final int GET_ALL = 6;
+    private static final int CLOSE_SOCKET = -1;
 
     private int state = WAITING;
 
@@ -21,6 +23,11 @@ public class CommunicationProtocol {
 
     public String processInput(String inMessage) {
         String outMessage = "";
+
+        if (inMessage.equalsIgnoreCase("Bye")) {
+            state = CLOSE_SOCKET;
+            return inMessage;
+        }
 
         // @ Misha and Chris Refer to this to see what kind of messages are expected
         if (state == WAITING) {
@@ -56,6 +63,10 @@ public class CommunicationProtocol {
             else if (inMessage.substring(0, 4).equals("RUN:")) {
                 outMessage = "Received Run message:" + inMessage;
                 state = RUN_MODULE;
+            }
+            else if (inMessage.substring(0, 8).equals("GET ALL")) {
+                outMessage = "GET ALL MODULES";
+                state = GET_ALL;
             }
             else {
                 outMessage = "Unknown input";

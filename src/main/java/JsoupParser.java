@@ -147,7 +147,7 @@ public class JsoupParser {
 
         JsoupParser jp = new JsoupParser();
         jp.setModuleName("abcd");
-        jp.sendDataToServer();
+        //jp.sendDataToServer();
         /*jp.displayResult("test4 passed");
 
 	     JsoupParser jp2 = new JsoupParser("C:\\Users\\User\\eclipse\\JsoupParser\\src\\test.html");
