@@ -155,7 +155,7 @@ public class JsoupParser {
 
 		return "ERROR: Could not get response from server. Please try again or check the server";
 	}
-
+   // send the GET ALL Module request to the server.
 	public static String sendGetAllRequestToServer() {
 		String getAllRequest = "GET ALL";
 
@@ -163,8 +163,11 @@ public class JsoupParser {
 			String message = clientSocket.run("Hi Server! I am the Display form", "");
 			if (message.equalsIgnoreCase("Hi DisplayForm. What do you need")) {
 				message = clientSocket.run(getAllRequest, "Display Form");
-
-				return message;  //TODO: Change this if necessary
+                if (message.subString(0, 4).equals("ERROR")) {  // maybe this check is not necessay since I did not see other return result in this case in HandleRequests, but just in case.
+                	displayError(message); 
+                }
+                  
+ 				return message;  //TODO: Change this if necessary
 			}
 		} catch (Exception e) {
 			return "Client Error: " + e.getMessage();
@@ -186,31 +189,46 @@ public class JsoupParser {
 			System.err.println("Client Error: " + e.getMessage());
 		}
 	}
-
-    public  void getTestJobFromServer(String moduleListStr) {
-    	ArrayList<String []> moduleList = new ArrayList<String []>();
-    	//String module[] = new String[5]; // future bug insertion position
-        String module[];
-        // 1) parse  the string input in the formate of {{module1, 20151103, 3, 7, 10}; {module2, 20160709, 7, 3, 10}}.
+    public static void controll()
+	
+	
+    // send the result of GET ALL module reuest to UI
+    public static ArrayList<Obj> sendALLModuletToUIServer(String moduleListStr) {
+		ArrayList<Obj> testModules = new ArrayList<Obj>();
+    	//String module[] = new String[5]; // future bug position
+        Obj obj; 
+        // 1) parse  the string input in the format of {{module1, 20151103, 3, 7, 10}; {module2, 20160709, 7, 3, 10}}.
+        
 		// get rid of { in the beginning and } in the end;
 		String subStr = moduleListStr.substring(1, moduleListStr.length() - 1);
+		//System.out.println(subStr);
 		//split the substring into tokens
 		String modules[] = subStr.split(";");
-		// for each module, get rid of { and }.
-		System.out.println(modules.length);
+	
+		//System.out.println(modules.length);
 		for (int i = 0; i < modules.length; i++) {
+			// for each module, get rid of { and }.
 			String subMods = modules[i].substring(1, (modules[i].length() -1)); // possible inserting bug position :  modules[0]
 			System.out.println(subMods);
 		    // get the value of  tokens
-		 	module = new String[5];
+		 	obj = new Obj();
 		    String tokens[] = subMods.split(",");
-		    for (int j = 0; j < tokens.length; j++) {
-		   
-		    	module[j] = tokens[j];
-		    	System.out.println("module[j] : " + module[j]);
-		    }
-		    moduleList.add(module);
+		    obj.modNo = tokens[0];
+		    obj.lastRunDate = tokens[1];
+		    obj.totalTests = tokens[2];
+		    obj.testPassed = tokens[3];
+		    obj.testFailed = tokens[4];
+	        
+		    testModules.add(obj);
+		
 	    }
+		
+		
+        return  testModules;
+		
+		
+		/*
+		 * since we are going to use Servelet to modify the page, so comment this method
 		
 	 	// 2) pass string variable into doc
         Element table = doc.select("table").get(0);
@@ -249,7 +267,7 @@ public class JsoupParser {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		*/
 	} 
 
 	public static void main(String[] args) throws IOException {

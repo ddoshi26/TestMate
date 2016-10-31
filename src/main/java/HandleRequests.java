@@ -87,6 +87,7 @@ public class HandleRequests implements Runnable {
                                     result += testJobList.get(i).getTestsPassed() + ",";
                                     result += testJobList.get(i).getTestsFailed() + ",";
                                     result += testJobList.get(i).getTotalTests() + "}";
+                                    
 
                                     if (i != testJobList.size() - 1) {
                                         result += ";";
@@ -118,7 +119,7 @@ public class HandleRequests implements Runnable {
                             // TODO: RUN SCRIPT BASED ON ORDER <------ WIP
                         }
                         //SEND ALL MODULES TO UI
-                        // {{Name:<TM_Name>,Time:<TimeStamp>
+                        // {{<TM_Name>, <TimeStamp>, ... };{<moduol2>, <timeStamp>....}}
                         else if (message.charAt(0) == '6') {
                             List<TestModule> moduleList = ddbClient.getAllTestModules();
 
