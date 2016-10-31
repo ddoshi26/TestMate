@@ -114,6 +114,7 @@ public class JsoupParser {
 
 	public static String sendGetRequestToServer(String moduleName) {
 		String getRequest = "SEND:" + moduleName;
+
 		try {
 			String message = clientSocket.run("Hi Server! I am the Display form", "");
 			if (message.equalsIgnoreCase("Hi DisplayForm. What do you need")) {
@@ -125,7 +126,24 @@ public class JsoupParser {
 			System.err.println("Client Error: " + e.getMessage());
 		}
 
-		return "";
+		return "ERROR: Could not get response from server. Please try again or check the server";
+	}
+
+	public static String sendGetAllRequestToServer() {
+		String getAllRequest = "GET ALL";
+
+		try {
+			String message = clientSocket.run("Hi Server! I am the Display form", "");
+			if (message.equalsIgnoreCase("Hi DisplayForm. What do you need")) {
+				message = clientSocket.run(getAllRequest, "Display Form");
+
+				return message;  //TODO: Change this if necessary
+			}
+		} catch (Exception e) {
+			return "Client Error: " + e.getMessage();
+		}
+
+		return "ERROR: Could not get response from server. Please try again or check the server";
 	}
 
 	public static void runModule(String moduleName) {
