@@ -109,13 +109,13 @@ public class HandleRequests implements Runnable {
                                 /*
                                 moduleListStr += "{Name:" + moduleList.get(i).getName() + ",";
                                 moduleListStr += "Time" + latest.getTimestamp() + ",";
-                                moduleListStr += "Total" + latest.getTotalTests();
+                                moduleListStr += "Total" + latest.getTotalTests() + ",";
                                 moduleListStr += "Passed" + latest.getTestsPassed() +",";
                                 moduleListStr += "Failed" + latest.getTestsFailed() + ",";
                                */
-                                moduleListStr +=  moduleList.get(i).getName() + ",";
+                                moduleListStr +=  "{" + moduleList.get(i).getName() + ",";
                                 moduleListStr += latest.getTimestamp() + ",";
-                                moduleListStr += latest.getTotalTests();
+                                moduleListStr += latest.getTotalTests() + ",";
                                 moduleListStr += latest.getTestsPassed() +",";
                                 moduleListStr += latest.getTestsFailed() + ",";
 

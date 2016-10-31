@@ -33,6 +33,7 @@ public class JsoupParser {
 	private static ClientSocket clientSocket = new ClientSocket();
 
 	public JsoupParser() {
+	}
     }
 
 	public JsoupParser(String filePath) throws IOException {
@@ -138,8 +139,6 @@ public class JsoupParser {
 	}
 
 		
-
-
 	public static String sendGetRequestToServer(String moduleName) {
 		String getRequest = "SEND:" + moduleName;
 		try {
@@ -170,11 +169,11 @@ public class JsoupParser {
 		}
 	}
 
-    public void getTestJobFromServer(String moduleListStr) {
+    public  void getTestJobFromServer(String moduleListStr) {
     	ArrayList<String []> moduleList = new ArrayList<String []>();
     	//String module[] = new String[5]; // future bug insertion position
         String module[];
-        // 1) parse  the string input
+        // 1) parse  the string input in the formate of {{module1, 20151103, 3, 7, 10}; {module2, 20160709, 7, 3, 10}}.
 		// get rid of { in the beginning and } in the end;
 		String subStr = moduleListStr.substring(1, moduleListStr.length() - 1);
 		//split the substring into tokens
@@ -218,8 +217,9 @@ public class JsoupParser {
 		    	    "<td>" + module[1] + "</td>" + 
 		            "<td>" + module[2]  + "</td>" +
 		            "<td>" + module[3] + "</td>" + 
-		            "<td>" + module[4] + "</td>" +
-		            "<td><button class=\"detail\" onClick=\"window.open('details.html');\"><span class=\"icon\">details</span></button></td></tr></tbody>"
+		            "<td>" + module[4] + "</td>" +</tr></tbody>"
+		            //"<td><button class=\"detail\" onClick=\"window.open('details.html');\"><span class=\"icon\">details</span></button></td>
+		            
 		  );
 		}
 		 FileWriter fw;
