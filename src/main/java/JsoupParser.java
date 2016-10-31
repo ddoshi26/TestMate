@@ -31,6 +31,20 @@ public class JsoupParser {
     private static List<Part> testFiles;
    	private static List<Part> configureFiles;
 	private static ClientSocket clientSocket = new ClientSocket();
+   
+	public class Obj {
+		String modNo;
+		String testPassed;
+		String testFailed;
+		String totalTests;
+		String lastRunDate;
+		
+		public String getTestPassed() {return testPassed;}
+		public String getModNo() {return modNo;}
+		public String getTestFailed() {return testFailed;}
+		public String getTotalTests() {return totalTests;}
+		public String getLastRunDate() {return lastRunDate;}
+	}
 
 	public JsoupParser() {
 	}
