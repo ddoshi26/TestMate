@@ -5,7 +5,6 @@ import database.TestJob;
 import database.TestModule;
 
 import java.io.*;
-import java.sql.Time;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -30,7 +29,7 @@ public class HandleRequests implements Runnable {
     public HandleRequests() {
         socketWrapper = new SocketWrapper(staticPorts.getPairList().get(StaticPorts.pos));
         StaticPorts.pos++;
-        //ddbClient = new DDBClient();
+        ddbClient = new DDBClient();
 
         //fileList(0) = Executable File list; fileList(1) = Test Files; fileList(2) = Script files
         fileList = new ArrayList<ArrayList<String>>(3);
@@ -73,14 +72,32 @@ public class HandleRequests implements Runnable {
                             String moduleName = message.substring(message.indexOf(':') + 1);
                             TestModule sendModule;
 
-
+                            String result = "{";
                             if (StringUtils.isBlank(moduleName) || (sendModule = ddbClient.getTestModule(moduleName)) == null) {
-                                socketWrapper.sendMessage("ModuleName Invalid or Not Found:" + moduleName);
+                                socketWrapper.sendMessage("ERROR: ModuleName Invalid or Not Found:" + moduleName);
                             } else {
+                                result += "Name:" + moduleName +",";
+                                result += "TestJobs:{";
+
+                                List<TestJob> testJobList = ddbClient.getAllTestJobsForATestModule(moduleName);
+
+                                for (int i = 0; i < testJobList.size(); i++) {
+                                    result += testJobList.get(i).getTestJobName() + ",";
+                                    result += testJobList.get(i).getTimestamp() + ",";
+                                    result += testJobList.get(i).getTestsPassed() + ",";
+                                    result += testJobList.get(i).getTestsFailed() + ",";
+                                    result += testJobList.get(i).getTotalTests() + "}";
+
+                                    if (i != testJobList.size() - 1) {
+                                        result += ";";
+                                    }
+                                }
+                                result += "}}";
+
                                 try {
                                     socketWrapper.sendMessage(mapper.writeValueAsString(sendModule));
                                 } catch (JsonProcessingException e) {
-                                    socketWrapper.sendMessage("Failed to parse module. Deleting it from DB");
+                                    socketWrapper.sendMessage("ERROR: Failed to parse module. Deleting it from DB");
 
                                     // TODO: DELETE MODULE IMPLEMENTATION MISSING IN DB
                                     // TODO: ANOTHER Bug could be single delete in only 1 table rather than cross deleting both TestModule and Relevant TestJobs
@@ -176,7 +193,7 @@ public class HandleRequests implements Runnable {
         }
 
         //for (int i = 0; i < runModule.getScriptFile().length(); i++) {
-            String fileLocationStr =  "/homes/doshid/cs252/lab2-src/script-consumer.sh"; ///runModule.getScriptFile().toJson();
+            String fileLocationStr = runModule.getScriptFile().toJson();
             //TODO: ^ Parse this json and extract the str
 
             String type = getFileType(fileLocationStr);
@@ -200,8 +217,7 @@ public class HandleRequests implements Runnable {
 
         char lastChar = fileDirectory.charAt(fileDirectory.length() - 1);
 
-        String execScriptfileName = fileDirectory + ((lastChar == '/') ? "" : "/") +
-                                        "script_" + date.getTime() + ".sh";
+        String execScriptfileName = fileDirectory + ((lastChar == '/') ? "" : "/") + "script_" + date.getTime() + ".sh";
 
         //TODO: Complete creating file using TestModule and first run execute file
         //TODO: ^^ Check TODO below
@@ -209,22 +225,22 @@ public class HandleRequests implements Runnable {
         Process scriptFileExecute = null;
         String scriptFileLocation = runModule.getScriptFile().toJson();
         // TODO: ^ Parse the json and get the actual location
-
-        try {
-            scriptFileExecute = Runtime.getRuntime().exec(scriptFileLocation);
-            scriptFileExecute.waitFor();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//
+//        try {
+//            scriptFileExecute = Runtime.getRuntime().exec(scriptFileLocation);
+//            scriptFileExecute.waitFor();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
         try {
             FileWriter fw = new FileWriter(execScriptfileName);
             PrintWriter pw = new PrintWriter(fw);
 
             pw.println("#!/bin/bash");
-            pw.println("cd " + fileDirectory);
+            //pw.println("cd " + fileDirectory);
 
             String jsonExec = runModule.getExecutableFile().toJson();
             //TODO: ^ Parse json to get actual file
@@ -236,19 +252,6 @@ public class HandleRequests implements Runnable {
             testFileList.add("homes/doshid/cs408/programsForTesting/module2/testall");
 
             Map<String, ArrayList<String>> cmdList = new CommandListMap().commandList;
-
-            // TODO: Note that this has been commented out because in most cases the test file will run the exec files
-//            for (int i = 0; i < executableFileList.length(); i++) {
-//                String currentFileType = getFileType(executableFileList.get(i));
-//
-//                if (cmdList.containsKey(currentFileType)) {
-//                    cmdList.get(currentFileType).add(executableFileList.get(i));
-//                }
-//                else {
-//                    cmdList.put(currentFileType, new ArrayList<String>());
-//                    cmdList.get(currentFileType).add(executableFileList.get(i));
-//                }
-//            }
 
             for (int i = 0; i < testFileList.size(); i++) {
                 String currentFileType = getFileType(testFileList.get(i));
@@ -284,7 +287,7 @@ public class HandleRequests implements Runnable {
             e.printStackTrace();
         }
 
-        runCommand("sh " + execScriptfileName, null);
+        runCommand("sh " + execScriptfileName, null, 60);
     }
 
     private String runCommand(String command, String fileName, int timeout) {
@@ -339,7 +342,7 @@ public class HandleRequests implements Runnable {
 
             switch (type) {
                 case "json":
-                    runCommand("node install", null);
+                    runCommand("node install", null, 60);
                     break;
 
                 case "sh":
@@ -362,7 +365,7 @@ public class HandleRequests implements Runnable {
 
     public static void main(String[] args) {
         HandleRequests hr = new HandleRequests();
-        hr.currentDir = hr.runCommand("pwd", null);
+        hr.currentDir = hr.runCommand("pwd", null, 5);
         hr.currentDir = hr.currentDir.substring(0, hr.currentDir.length() - 1);
         hr.createBashScript(new TestModule());
 
