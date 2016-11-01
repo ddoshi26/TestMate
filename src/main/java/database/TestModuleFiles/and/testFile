@@ -26,22 +26,4 @@ if [ $? -ne 0 ]; then
 	echo "test3 failed"
 else 
 	echo "test3 passed"
-fi
-
-if [ 2 -eq 2 ]; then
-	echo "test4 passed"
-else
-	echo "test4 failed"
-fi
-
-if [ 7 -lt 10 ]; then
-	echo "test5 passed"
-else
-	echo "test5 failed"
-fi
-
-if [ 3 -eq 2 ]; then
-	echo "test6 passed"
-else
-	echo "test6 failed"
-fi
+fi	
