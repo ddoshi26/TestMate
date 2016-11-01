@@ -59,26 +59,31 @@ public class SocketWrapper {
 
             int bytesRead = 0;
             int read = 0;
-            String strFileContents;
             while((read = inputStream.read(contents)) != -1) {
                 inMessage += new String(contents, bytesRead, read);
                 bytesRead += read;
-                if (inMessage.contains("\r\n"))
+                if (inMessage.contains("\r\n")) {
+                    inMessage = inMessage.substring(0, inMessage.indexOf('\r'));
                     break;
+                }
             }
 
             String outMessage = commProtocol.processInput(inMessage);
+            outMessage += "\r\n";
 
             if (outMessage.equalsIgnoreCase("Bye")) {
                 return outMessage;
             }
-            else if (commProtocol.getState() == 0 || commProtocol.getState() == 1) {
+            else if (commProtocol.getState() == 0 || commProtocol.getState() == 1 || commProtocol.getState() == 2) {
                 outstream.println(outMessage);
                 outstream.flush();
                 return "WAITING";
             }
-            if (commProtocol.getState() == 3 || commProtocol.getState() == 4 || commProtocol.getState() == 5) {
-                return commProtocol.getState() + ":" + inMessage.substring(inMessage.indexOf(':') + 1);
+            else if (commProtocol.getState() == 3) {
+                return commProtocol.getState() + ";" + inMessage.substring(inMessage.indexOf(';') + 1);
+            }
+            else if (commProtocol.getState() == 4 || commProtocol.getState() == 5) {
+                return commProtocol.getState() + ":" + inMessage.substring(inMessage.indexOf(';') + 1);
             }
             else if (commProtocol.getState() == 6) {
                 return commProtocol.getState() + ":" + inMessage;
@@ -104,6 +109,8 @@ public class SocketWrapper {
     }
 
     public void sendMessage(String outMessage) {
+        outMessage += "\r\n";
+
         outstream.println(outMessage);
         outstream.flush();
     }

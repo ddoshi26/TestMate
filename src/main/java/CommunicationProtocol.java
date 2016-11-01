@@ -11,7 +11,7 @@ public class CommunicationProtocol {
     private static final int GET_ALL = 6;
     private static final int CLOSE_SOCKET = -1;
 
-    private int state = WAITING;
+    private int state = SENTINITIALMESSAGE;
 
     public int getState() {
         return state;
@@ -30,51 +30,35 @@ public class CommunicationProtocol {
         }
 
         // @ Misha and Chris Refer to this to see what kind of messages are expected
-        if (state == WAITING) {
-            outMessage = "Hey! This is the Server!";
-            state = SENTINITIALMESSAGE;
+        if (inMessage.equalsIgnoreCase("Hi Server! I am the Input form")) {
+            outMessage = "Hi InputForm. Send me you data";
+            state = COMMUNICATING;
         }
-        else if (state == SENTINITIALMESSAGE) {
-            if (inMessage.equalsIgnoreCase("Hi Server! I am the Input form")) {
-                outMessage = "Hi InputForm. Send me you data";
-                state = COMMUNICATING;
-            }
-            else if (inMessage.equalsIgnoreCase("Hi Server! I am the Display form")) {
-                outMessage = "Hi DisplayForm. What do you need";
-                state = COMMUNICATING;
-            }
-            else {
-                outMessage = "Unknown input";
-                state = WAITING;
-            }
+        else if (inMessage.equalsIgnoreCase("Hi Server! I am the Display form")) {
+            outMessage = "Hi DisplayForm. What do you need";
+            state = COMMUNICATING;
         }
-        else if (state == COMMUNICATING) {
-            // Format: "SEND:<ModuleName>"
-            if (inMessage.substring(0, 5).equals("SEND:")) {
-                outMessage = "Received Send message:" + inMessage;
-                state = SEND_MODULE;
-            }
-            // Format: "CREATE:{{ModuleName:"moduleName"},{Files:<File1,...(Executable file); Test File; Script file...>}}
-            else if (inMessage.substring(0, 7).equals("CREATE:")) {
-                outMessage = "Received message to Create:" + inMessage;
-                state = CREATE_MODULE;
-            }
-            // Format: "RUN:<ModuleName>"
-            else if (inMessage.substring(0, 4).equals("RUN:")) {
-                outMessage = "Received Run message:" + inMessage;
-                state = RUN_MODULE;
-            }
-            else if (inMessage.substring(0, 8).equals("GET ALL")) {
-                outMessage = "GET ALL MODULES";
-                state = GET_ALL;
-            }
-            else {
-                outMessage = "Unknown input";
-                state = WAITING;
-            }
+        // Format: "SEND:<ModuleName>"
+        else if (inMessage.contains("SEND")) {
+            outMessage = "Received Send message:" + inMessage;
+            state = SEND_MODULE;
+        }
+        // Format: "CREATE:{{ModuleName:"moduleName"},{Files:<File1,...(Executable file); Test File; Script file...>}}
+        else if (inMessage.contains("CREATE")) {
+            outMessage = "Received message to Create:" + inMessage;
+            state = CREATE_MODULE;
+        }
+        // Format: "RUN:<ModuleName>"
+        else if (inMessage.contains("RUN")) {
+            outMessage = "Received Run message:" + inMessage;
+            state = RUN_MODULE;
+        }
+        else if (inMessage.contains("GET ALL")) {
+            outMessage = "GET ALL MODULES";
+            state = GET_ALL;
         }
         else {
-            outMessage = "Waiting for input";
+            outMessage = "Unknown input";
             state = WAITING;
         }
 

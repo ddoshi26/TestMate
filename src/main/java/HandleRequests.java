@@ -5,8 +5,14 @@ import database.TestJob;
 import database.TestModule;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
 
 /**
  * Created by Dhairya on 10/12/2016.
@@ -19,6 +25,8 @@ public class HandleRequests implements Runnable {
     String currentModuleName;
     TestModule currentModule;
     ArrayList<ArrayList<String>> fileList;
+
+    ArrayList<String> fileList1 = new ArrayList<String>();
 
     DDBClient ddbClient;
     Date date;
@@ -54,12 +62,17 @@ public class HandleRequests implements Runnable {
                             // Message to create a new module should be of the format:
                             // {{ModuleName:"moduleName"},{Files:<File1,...(Executable file); Test File; Script file...>}}
 
-                            String moduleName = message.substring(message.indexOf(':') + 2, message.indexOf('}') - 1);
+//                            StringTokenizer st = new StringTokenizer(message, "\"");
+//                            st.nextToken();
+//                            String moduleName = st.nextToken();
+
+                            int f_index = message.indexOf(':');
+                            String moduleName = message.substring(f_index + 1, message.indexOf('}'));
 
                             parseFileLocationString(message.substring(message.indexOf(',') + 1));
                             //TODO: Check for update option
 
-                            ddbClient.createNewTestModule(moduleName, fileList.get(0).get(0), fileList.get(1).get(0), fileList.get(2).get(0));
+                            ddbClient.createNewTestModule(moduleName, fileList1.get(0), fileList1.get(1), fileList1.get(2));
 
                             if (ddbClient.getTestModule(moduleName) != null) {
                                 socketWrapper.sendMessage("Successfully created module:" + moduleName);
@@ -82,6 +95,7 @@ public class HandleRequests implements Runnable {
                                 List<TestJob> testJobList = ddbClient.getAllTestJobsForATestModule(moduleName);
 
                                 for (int i = 0; i < testJobList.size(); i++) {
+                                    result += moduleName + ",";
                                     result += testJobList.get(i).getTestJobName() + ",";
                                     result += testJobList.get(i).getTimestamp() + ",";
                                     result += testJobList.get(i).getTestsPassed() + ",";
@@ -107,36 +121,54 @@ public class HandleRequests implements Runnable {
                         }
                         // RUN Module
                         else if (message.charAt(0) == '5') {
-                            TestModule runModule = ddbClient.getTestModule(message.substring(message.indexOf(':') + 1));
+                            StringTokenizer str = new StringTokenizer(message, ":");
+                            str.nextToken(); str.nextToken();
+                            String name = str.nextToken();
+
+                            TestModule runModule = ddbClient.getTestModule(name);
 
                             if (runModule == null) {
                                 socketWrapper.sendMessage("Invalid module name");
                                 return;
                             }
 
-                            createBashScript(runModule);
+                            boolean result = createBashScript(runModule);
+                            if (result)
+                                socketWrapper.sendMessage("Success");
+                            else
+                                socketWrapper.sendMessage("Failed");
                             // TODO: RUN SCRIPT BASED ON ORDER <------ WIP
                         }
                         //SEND ALL MODULES TO UI
-                        // {{Name:<TM_Name>,Time:<TimeStamp>
+                        // {{Name:<TM_Name>,Time:<TimeStamp>,
                         else if (message.charAt(0) == '6') {
                             List<TestModule> moduleList = ddbClient.getAllTestModules();
-
                             TestJob latest;
                             String moduleListStr = "{";
 
                             for (int i = 0; i < moduleList.size(); i++) {
                                 latest = ddbClient.getTestJob(moduleList.get(i).getLatestTestJobName());
 
-                                moduleListStr += "{Name:" + moduleList.get(i).getName() + ",";
-                                moduleListStr += "Time" + latest.getTimestamp() + ",";
-                                moduleListStr += "Passed" + latest.getTestsPassed() +",";
-                                moduleListStr += "Failed" + latest.getTestsFailed() + ",";
-                                moduleListStr += "Total" + latest.getTotalTests();
+                                if (latest == null) {
+                                    moduleListStr += "{Name:" + moduleList.get(i).getName() + ",";
+                                    moduleListStr += "JobName:" + "NA" + ",";
+                                    moduleListStr += "Time:" + "NA" + ",";
+                                    moduleListStr += "Passed:" + "0" +",";
+                                    moduleListStr += "Failed:" + "0" + ",";
+                                    moduleListStr += "Total:" + "0";
+                                }
+                                else {
+                                    moduleListStr += "{Name:" + moduleList.get(i).getName() + ",";
+                                    moduleListStr += "JobName:" + latest.getTestJobName() + ",";
+                                    moduleListStr += "Time:" + latest.getTimestamp() + ",";
+                                    moduleListStr += "Passed:" + latest.getTestsPassed() + ",";
+                                    moduleListStr += "Failed:" + latest.getTestsFailed() + ",";
+                                    moduleListStr += "Total:" + latest.getTotalTests();
+                                }
 
                                 moduleListStr += '}';
                                 if (i != moduleList.size() - 1)
-                                    moduleListStr += ';';
+                                    moduleListStr += ',';
                             }
 
                             moduleListStr +='}';
@@ -153,151 +185,204 @@ public class HandleRequests implements Runnable {
 
     // {Files:<File1,...(Executable file); Test File; Script file...>}}
     public void parseFileLocationString(String str) {
-        int i = 0;
-        int len = str.length();
-        String file = "";
+//        int i = 0;
+//        int len = str.length();
+//        String file = "";
+//
+//        i = str.indexOf(':', str.indexOf('{'));
+//        i += 1;
+//        int fileListindex = 0;
+//
+//        while (i < len) {
+//            file = "";
+//            char c;
+//
+//            while ((c = str.charAt(i)) != ';' && i < len) {
+//                while ((c = str.charAt(i)) != ',' && i < len) {
+//                    if (c == ';') {
+//                        i++;
+//                        break;
+//                    }
+//                    if (c != '{' && c != '}')
+//                        file += c;
+//                    i++;
+//                }
+//                i++;
+//
+//                if (StringUtils.isNotBlank(file)) {
+//                    fileList.get(fileListindex).add(file);
+//                }
+//            }
+//
+//            i++;
+//            fileListindex++;
+//        }
+//
+//        if (StringUtils.isNotBlank(file)) {
+//            fileList.get(fileListindex).add(file);
+//        }
 
-        i = str.indexOf(':', str.indexOf('{'));
+        StringTokenizer st = new StringTokenizer(str, "}");
+        while(st.hasMoreTokens()) {
+            String a = st.nextToken();
 
-        int fileListindex = 0;
-
-        while (i < len) {
-            file = "";
-            char c;
-
-            while ((c = str.charAt(i)) != ';' && i < len) {
-                while (c != ',' && i < len) {
-                    if (c != '{' && c != '}')
-                        file += c;
-                    i++;
-                }
-                i++;
-
-                if (StringUtils.isNotBlank(file)) {
-                    fileList.get(fileListindex).add(file);
-                }
-            }
-
-            i++;
-            fileListindex++;
-        }
-
-        if (StringUtils.isNotBlank(file)) {
-            fileList.get(fileListindex).add(file);
+            //System.out.println(getValue(a) + "\n");
+            String val = getValue(a);
+            fileList1.add(val);
         }
     }
 
-    public void createBashScript(TestModule runModule) {
+    public static String getValue(String pair) {
+        StringTokenizer st = new StringTokenizer(pair, ":");
+        st.nextToken();
+
+        return st.nextToken();
+    }
+
+    public boolean createBashScript(TestModule runModule) {
         if (runModule == null) {
-            return;
+            return false;
         }
 
         //for (int i = 0; i < runModule.getScriptFile().length(); i++) {
-            String fileLocationStr = runModule.getScriptFile().toJson();
-            //TODO: ^ Parse this json and extract the str
-
-            String type = getFileType(fileLocationStr);
-            String fileNameStr = getFileName(fileLocationStr);
-
-            String fileDirectory = fileLocationStr.substring(0, fileLocationStr.lastIndexOf('/') + 1);
-            //TODO: NOTE: Do not change directory. Use absolute paths. runCommand("cd " + fileDirectory, null);
-
-            if (type.equals("node install")) {
-                runCommand(type, null, 60);
-            }
-            else {
-                if (type.equals("")) {
-                    runCommand(fileLocationStr, fileNameStr, 60);
-                }
-                else {
-                    runCommand(type + " " + fileLocationStr, fileNameStr, 60);
-                }
-            }
-        //}
-
-        char lastChar = fileDirectory.charAt(fileDirectory.length() - 1);
-
-        String execScriptfileName = fileDirectory + ((lastChar == '/') ? "" : "/") + "script_" + date.getTime() + ".sh";
-
-        //TODO: Complete creating file using TestModule and first run execute file
-        //TODO: ^^ Check TODO below
-
-        Process scriptFileExecute = null;
-        String scriptFileLocation = runModule.getScriptFile().toJson();
-        // TODO: ^ Parse the json and get the actual location
+       String fileLocationStr = runModule.filePathMap.get("testFile");
+//        //TODO: ^ Parse this json and extract the str
+//        if (fileLocationStr.equals(" "))
+//        String type = getFileType(fileLocationStr);
+//        String fileNameStr = getFileName(fileLocationStr);
 //
-//        try {
-//            scriptFileExecute = Runtime.getRuntime().exec(scriptFileLocation);
-//            scriptFileExecute.waitFor();
+//        String fileDirectory = fileLocationStr.substring(0, fileLocationStr.lastIndexOf('/') + 1);
+//        //TODO: NOTE: Do not change directory. Use absolute paths. runCommand("cd " + fileDirectory, null);
+//
+//        if (type.equals("node install")) {
+//            runCommand(type, null, 60);
+//        }
+//        else {
+//            if (type.equals("")) {
+//                runCommand(fileLocationStr, fileNameStr, 60);
+//            }
+//            else {
+//                runCommand(type + " " + fileLocationStr, fileNameStr, 60);
+//            }
+//        }
+//        //}
+//
+//        char lastChar = fileDirectory.charAt(fileDirectory.length() - 1);
+
+//        String execScriptfileName = fileDirectory + ((lastChar == '/') ? "" : "/") + "script_" + date.getTime() + ".sh";
+//
+//        //TODO: Complete creating file using TestModule and first run execute file
+//        //TODO: ^^ Check TODO below
+//
+//        Process scriptFileExecute = null;
+//        String scriptFileLocation = runModule.getScriptFile().toJson();
+//        // TODO: ^ Parse the json and get the actual location
+////
+////        try {
+////            scriptFileExecute = Runtime.getRuntime().exec(scriptFileLocation);
+////            scriptFileExecute.waitFor();
+////        } catch (IOException e) {
+////            e.printStackTrace();
+////        } catch (InterruptedException e) {
+////            e.printStackTrace();
+////        }
+//
+////        try {
+////            FileWriter fw = new FileWriter(execScriptfileName);
+////            PrintWriter pw = new PrintWriter(fw);
+////
+////            pw.println("#!/bin/bash");
+////            //pw.println("cd " + fileDirectory);
+////
+////            String jsonExec = runModule.getExecutableFile().toJson();
+////            //TODO: ^ Parse json to get actual file
+////
+////
+////            // TODO: Replace the below with the code in the comments
+////            ArrayList<String> testFileList = new ArrayList<String>(); //runModule.getTestFile();
+////            testFileList.add("homes/doshid/cs408/programsForTesting/module3/testall");
+////            testFileList.add("homes/doshid/cs408/programsForTesting/module2/testall");
+////
+////            Map<String, ArrayList<String>> cmdList = new CommandListMap().commandList;
+////
+////            for (int i = 0; i < testFileList.size(); i++) {
+////                String currentFileType = getFileType(testFileList.get(i));
+////
+////                if (cmdList.containsKey(currentFileType)) {
+////                    cmdList.get(currentFileType).add(testFileList.get(i));
+////                }
+////                else {
+////                    cmdList.put(currentFileType, new ArrayList<String>());
+////                    cmdList.get(currentFileType).add(testFileList.get(i));
+////                }
+////            }
+////
+////            Iterator<String> cmdListKey = cmdList.keySet().iterator();
+////
+////            while (cmdListKey.hasNext()) {
+////                String key = cmdListKey.next();
+////                ArrayList<String> fileList = cmdList.get(key);
+////
+////                pw.print(key + " ");
+////                for (int i = 0; i < fileList.size(); i++) {
+////                    pw.print(fileList.get(i));
+////
+////                    if (i != fileList.size() - 1)
+////                        pw.print(" ");
+////                }
+////                pw.print("\n");
+////            }
+////
+////            // TODO: Write the cmdList object into script file.
+////            pw.close();
 //        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        }
 
-        try {
-            FileWriter fw = new FileWriter(execScriptfileName);
-            PrintWriter pw = new PrintWriter(fw);
+        String scriptFile = runModule.filePathMap.get("scriptFile");
+        String execFile = runModule.filePathMap.get("executableFile");
+        String testFile = runModule.filePathMap.get("testFile");
 
-            pw.println("#!/bin/bash");
-            //pw.println("cd " + fileDirectory);
+        makePathExecutable(scriptFile);
+        makePathExecutable(execFile);
+        makePathExecutable(testFile);
 
-            String jsonExec = runModule.getExecutableFile().toJson();
-            //TODO: ^ Parse json to get actual file
+        String message = runCommand(fileLocationStr, fileLocationStr, 1);
 
-
-            // TODO: Replace the below with the code in the comments
-            ArrayList<String> testFileList = new ArrayList<String>(); //runModule.getTestFile();
-            testFileList.add("homes/doshid/cs408/programsForTesting/module3/testall");
-            testFileList.add("homes/doshid/cs408/programsForTesting/module2/testall");
-
-            Map<String, ArrayList<String>> cmdList = new CommandListMap().commandList;
-
-            for (int i = 0; i < testFileList.size(); i++) {
-                String currentFileType = getFileType(testFileList.get(i));
-
-                if (cmdList.containsKey(currentFileType)) {
-                    cmdList.get(currentFileType).add(testFileList.get(i));
-                }
-                else {
-                    cmdList.put(currentFileType, new ArrayList<String>());
-                    cmdList.get(currentFileType).add(testFileList.get(i));
-                }
+        // Parse message for tests passed, failed and total tests
+        StringTokenizer st = new StringTokenizer(message, "\n");
+        int totalTests = 0, testsPassed = 0, testsFailed = 0;
+        while(st.hasMoreTokens()) {
+            totalTests++;
+            if(st.nextToken().contains("failed")) {
+                testsPassed++;
+            } else {
+                testsFailed++;
             }
-
-            Iterator<String> cmdListKey = cmdList.keySet().iterator();
-
-            while (cmdListKey.hasNext()) {
-                String key = cmdListKey.next();
-                ArrayList<String> fileList = cmdList.get(key);
-
-                pw.print(key + " ");
-                for (int i = 0; i < fileList.size(); i++) {
-                    pw.print(fileList.get(i));
-
-                    if (i != fileList.size() - 1)
-                        pw.print(" ");
-                }
-                pw.print("\n");
-            }
-
-            // TODO: Write the cmdList object into script file.
-            pw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
-        runCommand("sh " + execScriptfileName, null, 60);
+        String testJobName = ddbClient.createNewTestJob(runModule.getName(), totalTests, testsPassed, testsFailed);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+        Date currentDate = new Date();
+        dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+
+        ddbClient.updateTestModuleWithNewTestJob(runModule.getName(), testJobName, dateFormat.format(currentDate));
+        return true;
+
+        //runCommand("sh " + execScriptfileName, null, 60);
     }
 
     private String runCommand(String command, String fileName, int timeout) {
         Process proc = null;
 
         try {
+            // set permissions
+            makePathExecutable(fileName);
+
             proc = Runtime.getRuntime().exec(command);
             long start = System.currentTimeMillis();
 
-            proc.waitFor(timeout, TimeUnit.SECONDS);
+            proc.waitFor(timeout, TimeUnit.MICROSECONDS);
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             StringBuilder builder = new StringBuilder();
@@ -363,15 +448,32 @@ public class HandleRequests implements Runnable {
         return "";
     }
 
+    public void makePathExecutable(String path) {
+        // set permissions
+        Set<PosixFilePermission> perms = new HashSet<PosixFilePermission>();
+        //add owners permission
+        perms.add(PosixFilePermission.OWNER_READ);
+        perms.add(PosixFilePermission.OWNER_WRITE);
+        perms.add(PosixFilePermission.OWNER_EXECUTE);
+        //add group permissions
+        perms.add(PosixFilePermission.GROUP_READ);
+        perms.add(PosixFilePermission.GROUP_WRITE);
+        perms.add(PosixFilePermission.GROUP_EXECUTE);
+        //add others permissions
+        perms.add(PosixFilePermission.OTHERS_READ);
+        perms.add(PosixFilePermission.OTHERS_WRITE);
+        perms.add(PosixFilePermission.OTHERS_EXECUTE);
+
+        try {
+            Files.setPosixFilePermissions(Paths.get(path), perms);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void main(String[] args) {
         HandleRequests hr = new HandleRequests();
-        hr.currentDir = hr.runCommand("pwd", null, 5);
-        hr.currentDir = hr.currentDir.substring(0, hr.currentDir.length() - 1);
-        hr.createBashScript(new TestModule());
 
-        //String output = hr.runCommand("mv /u/data/u99/doshid/HuluCodingChallenge.py " + hr.currentDir, null);
-
-        System.out.println(hr.currentDir + "\n");
         hr.run();
     }
 }
