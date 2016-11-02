@@ -1,3 +1,5 @@
+package server;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import database.DDBClient;
@@ -209,7 +211,7 @@ public class HandleRequests implements Runnable {
 //                }
 //                i++;
 //
-//                if (StringUtils.isNotBlank(file)) {
+//                if (server.StringUtils.isNotBlank(file)) {
 //                    fileList.get(fileListindex).add(file);
 //                }
 //            }
@@ -218,7 +220,7 @@ public class HandleRequests implements Runnable {
 //            fileListindex++;
 //        }
 //
-//        if (StringUtils.isNotBlank(file)) {
+//        if (server.StringUtils.isNotBlank(file)) {
 //            fileList.get(fileListindex).add(file);
 //        }
 
@@ -303,7 +305,7 @@ public class HandleRequests implements Runnable {
 ////            testFileList.add("homes/doshid/cs408/programsForTesting/module3/testall");
 ////            testFileList.add("homes/doshid/cs408/programsForTesting/module2/testall");
 ////
-////            Map<String, ArrayList<String>> cmdList = new CommandListMap().commandList;
+////            Map<String, ArrayList<String>> cmdList = new server.CommandListMap().commandList;
 ////
 ////            for (int i = 0; i < testFileList.size(); i++) {
 ////                String currentFileType = getFileType(testFileList.get(i));
@@ -469,11 +471,5 @@ public class HandleRequests implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) {
-        HandleRequests hr = new HandleRequests();
-
-        hr.run();
     }
 }
