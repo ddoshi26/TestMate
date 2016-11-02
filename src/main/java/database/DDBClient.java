@@ -1,12 +1,19 @@
 package database;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.datamodeling.*;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.model.*;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.CreateBucketRequest;
+import com.amazonaws.services.s3.model.GetBucketLocationRequest;
 import com.amazonaws.services.s3.model.Region;
 
 import java.io.File;
@@ -25,6 +32,7 @@ public class DDBClient {
     AmazonDynamoDBClient client;
     DynamoDB dynamoDB;
     DynamoDBMapper mapper;
+    private static String bucketName;
 
     public DDBClient() {
         /* initializing aws-related service providers */
@@ -35,6 +43,7 @@ public class DDBClient {
 
         /* create tables if they do not exist */
         createTables();
+        createS3Bucket();
     }
 
 
@@ -58,7 +67,7 @@ public class DDBClient {
 
                 // check if table has ACTIVE status
                 boolean tableStatus = TableStatus.ACTIVE.toString().equals(table.getTableStatus());
-                assert (tableStatus = true);
+                assert (tableStatus);
                 System.err.println(tableName + " exists and is active");
 
             } catch (ResourceNotFoundException rnfe) {
@@ -134,6 +143,47 @@ public class DDBClient {
     }
 
 
+    public static void createS3Bucket() {
+
+        String userName = System.getProperty("user.name");
+        bucketName = "edu.purdue.cs408.testmate" + "-" + userName;
+
+        AmazonS3 s3client = new AmazonS3Client(new ProfileCredentialsProvider());
+        s3client.setRegion(com.amazonaws.regions.Region.getRegion(Regions.US_EAST_1));
+
+        try {
+            if(!(s3client.doesBucketExist(bucketName)))
+            {
+                // Note that CreateBucketRequest does not specify region. So bucket is
+                // created in the region specified in the client.
+                s3client.createBucket(new CreateBucketRequest(
+                        bucketName));
+            }
+            // Get location.
+            String bucketLocation = s3client.getBucketLocation(new GetBucketLocationRequest(bucketName));
+            System.out.println("bucket location = " + bucketLocation);
+
+        } catch (AmazonServiceException ase) {
+            System.out.println("Caught an AmazonServiceException, which " +
+                    "means your request made it " +
+                    "to Amazon S3, but was rejected with an error response" +
+                    " for some reason.");
+            System.out.println("Error Message:    " + ase.getMessage());
+            System.out.println("HTTP Status Code: " + ase.getStatusCode());
+            System.out.println("AWS Error Code:   " + ase.getErrorCode());
+            System.out.println("Error Type:       " + ase.getErrorType());
+            System.out.println("Request ID:       " + ase.getRequestId());
+        } catch (AmazonClientException ace) {
+            System.out.println("Caught an AmazonClientException, which " +
+                    "means the client encountered " +
+                    "an internal error while trying to " +
+                    "communicate with S3, " +
+                    "such as not being able to access the network.");
+            System.out.println("Error Message: " + ace.getMessage());
+        }
+    }
+
+
     /**
      * To create a new test module
      * @param testModuleName is unique for every testModule
@@ -146,17 +196,17 @@ public class DDBClient {
         TestModule testModule = new TestModule();
         testModule.setName(testModuleName);
 
-        S3Link s3Link_executableFile = mapper.createS3Link(Region.US_Standard, "testmate", testModule.getName() +
+        S3Link s3Link_executableFile = mapper.createS3Link(Region.US_Standard, bucketName, testModule.getName() +
                 "/" + executableFile);
         s3Link_executableFile.uploadFrom(new File(executableFilePath));
         testModule.setExecutableFile(s3Link_executableFile);
 
-        S3Link s3Link_testFile = mapper.createS3Link(Region.US_Standard, "testmate", testModule.getName() +
+        S3Link s3Link_testFile = mapper.createS3Link(Region.US_Standard, bucketName, testModule.getName() +
                 "/" + testFile);
         s3Link_testFile.uploadFrom(new File(testFilePath));
         testModule.setTestFile(s3Link_testFile);
 
-        S3Link s3Link_scriptFile = mapper.createS3Link(Region.US_Standard, "testmate", testModule.getName() +
+        S3Link s3Link_scriptFile = mapper.createS3Link(Region.US_Standard, bucketName, testModule.getName() +
                 "/" + scriptFile);
         s3Link_scriptFile.uploadFrom(new File(scriptFilePath));
         testModule.setScriptFile(s3Link_scriptFile);

@@ -1,8 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'idea'
-apply plugin: 'maven'
-mainClassName = 'controllers/testmate'
+mainClassName = 'Main'
 
 repositories {
 	mavenCentral()
