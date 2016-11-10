@@ -143,21 +143,27 @@ public class DDBClient {
     }
 
 
+
+    /*
+     * Creates new S3 Bucket if bucket does
+     * not exist from before
+     */
     public static void createS3Bucket() {
 
         String userName = System.getProperty("user.name");
-        bucketName = "edu.purdue.cs408.testmate" + "-" + userName;
+        userName = userName.replaceAll("[^A-Za-z0-9 ]", "");
+        bucketName = "edu.purdue.cs408.testmate" + "." + userName;
+
+        System.err.println("Using bucket = " + bucketName);
 
         AmazonS3 s3client = new AmazonS3Client(new ProfileCredentialsProvider());
         s3client.setRegion(com.amazonaws.regions.Region.getRegion(Regions.US_EAST_1));
 
         try {
-            if(!(s3client.doesBucketExist(bucketName)))
-            {
+            if(!(s3client.doesBucketExist(bucketName))) {
                 // Note that CreateBucketRequest does not specify region. So bucket is
                 // created in the region specified in the client.
-                s3client.createBucket(new CreateBucketRequest(
-                        bucketName));
+                s3client.createBucket(new CreateBucketRequest(bucketName));
             }
             // Get location.
             String bucketLocation = s3client.getBucketLocation(new GetBucketLocationRequest(bucketName));
