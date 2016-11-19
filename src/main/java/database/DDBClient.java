@@ -243,29 +243,67 @@ public class DDBClient {
             return null;
         }
 
-        if(!getTestModule.filePathMap.isEmpty()) {
-            getTestModule.filePathMap.clear();
-        }
-
         String projectFilePath = new java.io.File("").getAbsolutePath() + "/src/main/java/database/TestModuleFiles/";
-
-        S3Link s3Link_executableFile = getTestModule.getExecutableFile();
         String executableFilePath = projectFilePath + testModuleName + "/" + executableFile;
-        getTestModule.filePathMap.put(executableFile, executableFilePath);
-        s3Link_executableFile.downloadTo(new File(executableFilePath));
-
-        S3Link s3Link_testFile = getTestModule.getTestFile();
         String testFilePath = projectFilePath + testModuleName + "/" + testFile;
-        getTestModule.filePathMap.put(testFile, testFilePath);
-        s3Link_testFile.downloadTo(new File(testFilePath));
-
-        S3Link s3Link_scriptFile = getTestModule.getScriptFile();
         String scriptFilePath = projectFilePath + testModuleName + "/" + scriptFile;
-        getTestModule.filePathMap.put(scriptFile, scriptFilePath);
-        s3Link_scriptFile.downloadTo(new File(scriptFilePath));
+
+
+        /* TO DO : check if the files exist for the test module */
+        if(fileExists(executableFilePath) && fileExists(testFilePath) && fileExists(scriptFilePath)) {
+
+            System.err.println("files already exist for testmodule: " + testModuleName);
+            getTestModule.filePathMap.put(executableFile, executableFilePath);
+            getTestModule.filePathMap.put(testFile, testFilePath);
+            getTestModule.filePathMap.put(scriptFile, scriptFilePath);
+
+        } else {
+
+            System.err.println("files do not exist for testmodule: " + testModuleName);
+
+            S3Link s3Link_executableFile = getTestModule.getExecutableFile();
+            getTestModule.filePathMap.put(executableFile, executableFilePath);
+            s3Link_executableFile.downloadTo(new File(executableFilePath));
+            fileExists(executableFilePath);
+
+            S3Link s3Link_testFile = getTestModule.getTestFile();
+            getTestModule.filePathMap.put(testFile, testFilePath);
+            s3Link_testFile.downloadTo(new File(testFilePath));
+            fileExists(testFilePath);
+
+            S3Link s3Link_scriptFile = getTestModule.getScriptFile();
+            getTestModule.filePathMap.put(scriptFile, scriptFilePath);
+            s3Link_scriptFile.downloadTo(new File(scriptFilePath));
+            fileExists(scriptFilePath);
+        }
 
         return getTestModule;
     }
+
+
+
+    /**
+     * Checks if a file exists given the absolute file path
+     */
+    public boolean fileExists(String filePath) {
+
+        /* waiting for file download to complete (if needed) */
+        try {
+            Thread.currentThread().sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        File f = new File(filePath);
+        if(f.exists() && !f.isDirectory()) {
+            System.err.println(filePath + "exists");
+            return true;
+        } else {
+            System.err.println(filePath + "does not exist");
+            return false;
+        }
+    }
+
 
 
     /**

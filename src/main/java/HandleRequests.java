@@ -125,6 +125,7 @@ public class HandleRequests implements Runnable {
                             str.nextToken(); str.nextToken();
                             String name = str.nextToken();
 
+                            System.err.println("running module : " + name);
                             TestModule runModule = ddbClient.getTestModule(name);
 
                             if (runModule == null) {
