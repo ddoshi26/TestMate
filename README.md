@@ -5,6 +5,7 @@ Pre-requisites:
 * Unix/Bash Environment
 * Maven
 * AWS account and AWS configured command line
+* Download the files from: https://drive.google.com/open?id=0B5ESoOOhpvpmUndSWVY2ODF5ODg
 
 # How to run the server? 
     1. tar xfv Test-Mate.tar
