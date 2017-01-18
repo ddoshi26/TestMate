@@ -11,7 +11,8 @@ Pre-requisites:
     2. cd Test-Mate/bin
     3. ./Test-Mate
 
-  The server will take a couple of minutes to spool up. Expected messages are:
+The server will take a couple of minutes to spool up. Expected messages are:
+    
     **** TestMate - Server Initializing... ****
     TestModule exists and is active
     TestJob exists and is active
