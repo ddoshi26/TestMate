@@ -20,7 +20,7 @@ The server will take a couple of minutes to spool up. Expected messages are:
 
 # How to run the client?
 
-    java - jar TestMate-1.0-SNAPSHOT-jar-with-dependencies.jar
+    java -jar TestMate-1.0-SNAPSHOT-jar-with-dependencies.jar
 
 The servlet will load up and connect to the server. Now to access the client, open
 your browser and go to: http:localhost:8080. You should see the TestMate-Web
